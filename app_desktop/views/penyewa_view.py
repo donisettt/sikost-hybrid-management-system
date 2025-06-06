@@ -39,12 +39,11 @@ class PenyewaApp(tk.Frame):
         frame_input = tk.LabelFrame(self, text="Form Penyewa", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode Penyewa", "Nama Penyewa", "Jenis Kelamin", "No HP", "Alamat", "Hunian"]
+        labels = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Kode Unit"]
         self.entries = {}
 
         for i, label_text in enumerate(labels):
-            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10),
-                           bg=self.entry_bg, fg=self.fg_color)
+            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=i, column=0, sticky="w", pady=6)
             ent = ttk.Entry(frame_input, width=40)
             ent.grid(row=i, column=1, pady=6, padx=(5,0))
@@ -53,10 +52,10 @@ class PenyewaApp(tk.Frame):
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
 
-        self.btn_add = tk.Button(frame_buttons, text="Tambah", command="", fg="white", bg="#4CAF50")
-        self.btn_update = tk.Button(frame_buttons, text="Update", command="", fg="white", bg="#2196F3")
-        self.btn_delete = tk.Button(frame_buttons, text="Hapus", command="", fg="white", bg="#f44336")
-        self.btn_clear = tk.Button(frame_buttons, text="Clear", command="", fg="white", bg="#9E9E9E")
+        self.btn_add = tk.Button(frame_buttons, text="Tambah", command=self.tambah_penyewa, fg="white", bg="#4CAF50")
+        self.btn_update = tk.Button(frame_buttons, text="Update", command=self.update_penyewa, fg="white", bg="#2196F3")
+        self.btn_delete = tk.Button(frame_buttons, text="Hapus", command=self.hapus_penyewa, fg="white", bg="#f44336")
+        self.btn_clear = tk.Button(frame_buttons, text="Clear", command=self.clear_form, fg="white", bg="#9E9E9E")
 
         self.btn_add.pack(fill='x', pady=4)
         self.btn_update.pack(fill='x', pady=4)
@@ -71,7 +70,7 @@ class PenyewaApp(tk.Frame):
 
         self.entry_search = ttk.Entry(frame_search, width=30)
         self.entry_search.pack(side='left', fill='x', expand=True, padx=(0, 5))
-        #self.entry_search.bind("<KeyRelease>", self.cari_penyewa)
+        self.entry_search.bind("<KeyRelease>", self.cari_penyewa)
 
         btn_reset = ttk.Button(frame_search, text="Reset", command=self.load_data)
         btn_reset.pack(side='left')
@@ -79,10 +78,10 @@ class PenyewaApp(tk.Frame):
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kd_penyewa", "nama", "jenis_kelamin", "no_hp", "alamat", "kd_kamar")
+        columns = ("kd_penyewa", "nama", "jenis_kelamin", "no_hp", "alamat", "kd_unit")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        header_names = ["Kode Penyewa", "Nama Penyewa", "Jenis Kelamin", "No HP", "Alamat", "Hunian"]
+        header_names = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Kode Unit"]
         for col, header in zip(columns, header_names):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
@@ -93,7 +92,7 @@ class PenyewaApp(tk.Frame):
         self.tree.pack(side='left', fill='both', expand=True)
         vsb.pack(side='right', fill='y')
 
-        #self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+        self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.load_data()
 
     def load_data(self):
@@ -107,23 +106,103 @@ class PenyewaApp(tk.Frame):
                 penyewa.jenis_kelamin,
                 penyewa.no_hp,
                 penyewa.alamat,
-                penyewa.kd_kamar
+                penyewa.kd_unit
             ))
 
-    # def tambah_penyewa(self):
-    #     kd = self.entries['kode_penyewa'].get().strip()
-    #     nama = self.entries['nama'].get().strip()
-    #     jk = self.entries['jenis_kelamin'].get().strip()
-    #     no_hp = self.entries['no_hp'].get().strip()
-    #     alamat = self.entries['alamat'].get().strip()
-    #     hunian = self.entries['kd_kamar'].get().strip()
-    #
-    #     if not kd or not nama:
-    #         messagebox.showwarning("Peringatan", "Kode dan Nama penyewa wajib diisi!")
-    #         return
-    #
-    #     try:
-    #         no_hp = int(no_hp)
-    #     except ValueError:
-    #         messagebox.showwarning("Peringatan", "No HP harus berupa angka!")
-    #         return
+    def tambah_penyewa(self):
+        kd = self.entries['kode_penyewa'].get().strip()
+        nama = self.entries['nama'].get().strip()
+        jk = self.entries['jenis_kelamin'].get().strip()
+        no_hp = self.entries['no_hp'].get().strip()
+        alamat = self.entries['alamat'].get().strip()
+        kd_unit = self.entries['kode_unit'].get().strip()
+
+        if not kd or not nama:
+            messagebox.showwarning("Peringatan", "Kode dan Nama Penyewa wajib diisi!")
+            return
+
+        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
+        self.controller.tambah_penyewa(penyewa)
+        messagebox.showinfo("Sukses", "Data penyewa berhasil ditambahkan.")
+        self.load_data()
+        self.clear_form()
+
+    def update_penyewa(self):
+        kd = self.entries['kode_penyewa'].get().strip()
+        nama = self.entries['nama'].get().strip()
+        jk = self.entries['jenis_kelamin'].get().strip()
+        no_hp = self.entries['no_hp'].get().strip()
+        alamat = self.entries['alamat'].get().strip()
+        kd_unit = self.entries['kode_unit'].get().strip()
+
+        if not kd:
+            messagebox.showwarning("Peringatan", "Pilih penyewa yang akan diupdate!")
+            return
+
+        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
+        self.controller.update_penyewa(penyewa)
+        messagebox.showinfo("Sukses", "Data penyewa berhasil diupdate.")
+        self.load_data()
+        self.clear_form()
+
+    def hapus_penyewa(self):
+        kd = self.entries['kode_penyewa'].get().strip()
+        if not kd:
+            messagebox.showwarning("Peringatan", "Pilih penyewa yang akan dihapus!")
+            return
+        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus penyewa {kd}?")
+        if confirm:
+            self.controller.hapus_kamar(kd)
+            messagebox.showinfo("Sukses", "Data penyewa berhasil dihapus.")
+            self.load_data()
+            self.clear_form()
+
+    def clear_form(self):
+        self.entries['kode_penyewa'].config(state='normal')
+        for ent in self.entries.values():
+            ent.delete(0, 'end')
+        self.tree.selection_remove(self.tree.selection())
+
+    def on_tree_select(self, event):
+        selected = self.tree.focus()
+        if selected:
+            values = self.tree.item(selected, 'values')
+            self.entries['kode_penyewa'].config(state='normal')
+            self.entries['kode_penyewa'].delete(0, 'end')
+            self.entries['kode_penyewa'].insert(0, values[0])
+            self.entries['kode_penyewa'].config(state='disabled')
+
+            self.entries['nama'].delete(0, 'end')
+            self.entries['nama'].insert(0, values[1])
+
+            self.entries['jenis_kelamin'].delete(0, 'end')
+            self.entries['jenis_kelamin'].insert(0, values[2])
+
+            self.entries['no_hp'].delete(0, 'end')
+            self.entries['no_hp'].insert(0, values[3])
+
+            self.entries['alamat'].delete(0, 'end')
+            self.entries['alamat'].insert(0, values[4])
+
+            self.entries['kode_unit'].delete(0, 'end')
+            self.entries['kode_unit'].insert(0, values[5])
+
+    def cari_penyewa(self, event):
+        keyword = self.entry_search.get().strip()
+        if keyword == "":
+            penyewa_list = self.controller.fetch_penyewa()
+        else:
+            penyewa_list = self.controller.cari_penyewa(keyword)
+
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        for penyewa in penyewa_list:
+            self.tree.insert('', 'end', values=(
+                penyewa.kd_penyewa,
+                penyewa.nama,
+                penyewa.jenis_kelamin,
+                penyewa.no_hp,
+                penyewa.alamat,
+                penyewa.kd_unit
+            ))

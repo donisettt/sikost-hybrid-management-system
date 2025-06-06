@@ -37,6 +37,7 @@ class KamarController:
             kamar.fasilitas
         )
         self.db.execute(query, params)
+        self.db.commit()
 
     def update_kamar(self, kamar: Kamar):
         query = """
@@ -53,10 +54,12 @@ class KamarController:
             kamar.kd_kamar
         )
         self.db.execute(query, params)
+        self.db.commit()
 
     def hapus_kamar(self, kd_kamar):
         query = "DELETE FROM kamar WHERE kd_kamar = %s"
         self.db.execute(query, (kd_kamar,))
+        self.db.commit()
 
     def cari_kamar(self, keyword):
         query = """

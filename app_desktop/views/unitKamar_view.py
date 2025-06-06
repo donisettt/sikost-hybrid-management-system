@@ -182,8 +182,10 @@ class UnitKamarApp(tk.Frame):
         if selected:
             item = self.tree.item(selected[0])
             kd_unit, kd_kamar, nama_kamar, status = item['values']
+            self.entries['kode_unit'].config(state='normal')  # pastikan bisa diedit dulu
             self.entries['kode_unit'].delete(0, tk.END)
             self.entries['kode_unit'].insert(0, kd_unit)
+            self.entries['kode_unit'].config(state='disabled')  # lalu nonaktifkan
             # Set combobox berdasarkan kd_kamar
             kamar_list = self.entries['kode_kamar']['values']
             for kamar in kamar_list:
