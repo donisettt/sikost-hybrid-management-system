@@ -82,7 +82,7 @@ class KamarApp(tk.Frame):
         columns = ("kd_kamar", "nama_kamar", "tipe", "kuota", "harga", "fasilitas")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        header_names = ["Kode Kamar", "Nama Kamar", "Tipe", "Kuota", "Harga", "Fasilitas"]
+        header_names = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Harga", "Fasilitas"]
         for col, header in zip(columns, header_names):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
