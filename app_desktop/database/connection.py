@@ -14,6 +14,10 @@ class Database:
         except Error as e:
             print(f"Koneksi gagal: {e}")
 
+    def cek_login(self, username, password):
+        self.cursor.execute("SELECT * FROM users WHERE username=%s AND password=%s", (username, password))
+        return self.cursor.fetchone() is not None
+
     def execute(self, query, params=None):
         try:
             if params:

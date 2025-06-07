@@ -136,11 +136,11 @@ class UnitKamarApp(tk.Frame):
 
         try:
             # Ambil kuota kamar dari controller
-            kuota = self.controller.get_kuota_kamar(kd_kamar)
+            jumlah_kamar = self.controller.get_jumlah_kamar(kd_kamar)
             # Hitung jumlah unit kamar yang sudah ada untuk kd_kamar ini
             jumlah_unit = self.controller.count_unit_kamar(kd_kamar)
 
-            if jumlah_unit >= kuota:
+            if jumlah_unit >= jumlah_kamar:
                 messagebox.showwarning("Peringatan", "Jumlah kamar maksimal.")
                 return
 

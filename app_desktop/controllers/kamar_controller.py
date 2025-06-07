@@ -16,7 +16,7 @@ class KamarController:
                 kd_kamar=row["kd_kamar"],
                 nama_kamar=row["nama_kamar"],
                 tipe=row["tipe"],
-                kuota=row["kuota"],
+                jumlah_kamar=row["jumlah_kamar"],
                 harga=row["harga"],
                 fasilitas=row["fasilitas"]
             )
@@ -25,14 +25,14 @@ class KamarController:
 
     def tambah_kamar(self, kamar: Kamar):
         query = """
-            INSERT INTO kamar (kd_kamar, nama_kamar, tipe, kuota, harga, fasilitas)
+            INSERT INTO kamar (kd_kamar, nama_kamar, tipe, jumlah_kamar, harga, fasilitas)
             VALUES (%s, %s, %s, %s, %s, %s)
             """
         params = (
             kamar.kd_kamar,
             kamar.nama_kamar,
             kamar.tipe,
-            kamar.kuota,
+            kamar.jumlah_kamar,
             kamar.harga,
             kamar.fasilitas
         )
@@ -42,13 +42,13 @@ class KamarController:
     def update_kamar(self, kamar: Kamar):
         query = """
         UPDATE kamar
-        SET nama_kamar = %s, tipe = %s, kuota = %s, harga = %s, fasilitas = %s
+        SET nama_kamar = %s, tipe = %s, jumlah_kamar = %s, harga = %s, fasilitas = %s
         WHERE kd_kamar = %s
         """
         params = (
             kamar.nama_kamar,
             kamar.tipe,
-            kamar.kuota,
+            kamar.jumlah_kamar,
             kamar.harga,
             kamar.fasilitas,
             kamar.kd_kamar
@@ -77,7 +77,7 @@ class KamarController:
                 kd_kamar=row["kd_kamar"],
                 nama_kamar=row["nama_kamar"],
                 tipe=row["tipe"],
-                kuota=row["kuota"],
+                jumlah_kamar=row["jumlah_kamar"],
                 harga=row["harga"],
                 fasilitas=row["fasilitas"]
             )

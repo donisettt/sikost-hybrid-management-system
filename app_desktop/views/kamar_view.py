@@ -79,7 +79,7 @@ class KamarApp(tk.Frame):
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kd_kamar", "nama_kamar", "tipe", "kuota", "harga", "fasilitas")
+        columns = ("kd_kamar", "nama_kamar", "tipe", "jumlah_kamar", "harga", "fasilitas")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
         header_names = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Harga", "Fasilitas"]
@@ -106,7 +106,7 @@ class KamarApp(tk.Frame):
                 kamar.kd_kamar,
                 kamar.nama_kamar,
                 kamar.tipe,
-                kamar.kuota,
+                kamar.jumlah_kamar,
                 kamar.harga,
                 kamar.fasilitas
             ))
@@ -115,7 +115,7 @@ class KamarApp(tk.Frame):
         kd = self.entries['kode_kamar'].get().strip()
         nama = self.entries['nama_kamar'].get().strip()
         tipe = self.entries['tipe'].get().strip()
-        kuota = self.entries['jumlah_kamar'].get().strip()
+        jumlah_kamar = self.entries['jumlah_kamar'].get().strip()
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
@@ -129,7 +129,7 @@ class KamarApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Harga harus berupa angka!")
             return
 
-        kamar = Kamar(kd, nama, tipe, kuota, harga_int, fasilitas)
+        kamar = Kamar(kd, nama, tipe, jumlah_kamar, harga_int, fasilitas)
         self.controller.tambah_kamar(kamar)
         messagebox.showinfo("Sukses", "Data kamar berhasil ditambahkan.")
         self.load_data()
@@ -139,7 +139,7 @@ class KamarApp(tk.Frame):
         kd = self.entries['kode_kamar'].get().strip()
         nama = self.entries['nama_kamar'].get().strip()
         tipe = self.entries['tipe'].get().strip()
-        kuota = self.entries['kuota'].get().strip()
+        jumlah_kamar = self.entries['jumlah_kamar'].get().strip()
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
@@ -152,21 +152,22 @@ class KamarApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Harga harus berupa angka!")
             return
 
-        kamar = Kamar(kd, nama, tipe, kuota, harga_int, fasilitas)
+        kamar = Kamar(kd, nama, tipe, jumlah_kamar, harga_int, fasilitas)
         self.controller.update_kamar(kamar)
-        messagebox.showinfo("Sukses", "Data kamar berhasil diupdate.")
+        messagebox.showinfo("Sukses", f"{nama} berhasil diupdate.")
         self.load_data()
         self.clear_form()
 
     def hapus_kamar(self):
         kd = self.entries['kode_kamar'].get().strip()
+        nama = self.entries['nama_kamar'].get().strip()
         if not kd:
             messagebox.showwarning("Peringatan", "Pilih kamar yang akan dihapus!")
             return
-        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus kamar {kd}?")
+        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus {nama}?")
         if confirm:
             self.controller.hapus_kamar(kd)
-            messagebox.showinfo("Sukses", "Data kamar berhasil dihapus.")
+            messagebox.showinfo("Sukses", f"{nama} berhasil dihapus.")
             self.load_data()
             self.clear_form()
 
@@ -216,7 +217,7 @@ class KamarApp(tk.Frame):
                 kamar.kd_kamar,
                 kamar.nama_kamar,
                 kamar.tipe,
-                kamar.kuota,
+                kamar.jumlah_kamar,
                 kamar.harga,
                 kamar.fasilitas
             ))

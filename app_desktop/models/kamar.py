@@ -1,9 +1,9 @@
 class Kamar:
-    def __init__(self, kd_kamar, nama_kamar, tipe, kuota, harga, fasilitas):
+    def __init__(self, kd_kamar, nama_kamar, tipe, jumlah_kamar, harga, fasilitas):
         self.kd_kamar = kd_kamar
         self.nama_kamar = nama_kamar
         self.tipe = tipe
-        self.kuota = kuota
+        self.jumlah_kamar = jumlah_kamar
         self.harga = harga
         self.fasilitas = fasilitas
 
@@ -12,7 +12,7 @@ class Kamar:
             "kd_kamar": self.kd_kamar,
             "nama_kamar": self.nama_kamar,
             "tipe": self.tipe,
-            "kuota": self.kuota,
+            "jumlah_kamar": self.jumlah_kamar,
             "harga": self.harga,
             "fasilitas": self.fasilitas
         }

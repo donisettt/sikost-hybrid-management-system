@@ -48,10 +48,21 @@ class PenyewaApp(tk.Frame):
             lbl.grid(row=i, column=0, sticky="w", pady=6)
 
             key = label_text.lower().replace(" ", "_")
+
             if key == "kode_unit":
-                cb = ttk.Combobox(frame_input, values=self.kode_unit_list, state="readonly", width=38)
+                if not self.kode_unit_list:
+                    # kalau list kosong
+                    cb = ttk.Combobox(frame_input, values=["Tidak ada data"], state="readonly", width=38)
+                    cb.current(0)  # set langsung ke "Tidak ada data"
+                else:
+                    # kalau list ada isi
+                    unit_options = ["Silahkan pilih kode unit"] + self.kode_unit_list
+                    cb = ttk.Combobox(frame_input, values=unit_options, state="readonly", width=38)
+                    cb.current(0)  # set default ke placeholder
+
                 cb.grid(row=i, column=1, pady=6, padx=(5, 0))
                 self.entries[key] = cb
+
             else:
                 ent = ttk.Entry(frame_input, width=40)
                 ent.grid(row=i, column=1, pady=6, padx=(5, 0))
@@ -132,7 +143,7 @@ class PenyewaApp(tk.Frame):
 
         penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
         self.controller.tambah_penyewa(penyewa)
-        messagebox.showinfo("Sukses", "Data penyewa berhasil ditambahkan.")
+        messagebox.showinfo("Sukses", f"Berhasil menambahkan {nama} sebagai penyewa.")
         self.load_data()
         self.clear_form()
 
@@ -150,16 +161,17 @@ class PenyewaApp(tk.Frame):
 
         penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
         self.controller.update_penyewa(penyewa)
-        messagebox.showinfo("Sukses", "Data penyewa berhasil diupdate.")
+        messagebox.showinfo("Sukses", f"Penyewa {nama} berhasil diupdate.")
         self.load_data()
         self.clear_form()
 
     def hapus_penyewa(self):
         kd = self.entries['kode_penyewa'].get().strip()
+        nama = self.entries['nama'].get().strip()
         if not kd:
             messagebox.showwarning("Peringatan", "Pilih penyewa yang akan dihapus!")
             return
-        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus penyewa {kd}?")
+        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus {nama} sebagai penyewa?")
         if confirm:
             self.controller.hapus_penyewa(kd)
             messagebox.showinfo("Sukses", "Data penyewa berhasil dihapus.")

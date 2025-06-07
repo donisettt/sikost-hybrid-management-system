@@ -1,188 +1,33 @@
 import tkinter as tk
-from tkinter import messagebox
-from PIL import Image, ImageTk
-import requests
-from io import BytesIO
-from app_desktop.views.kamar_view import KamarApp
-from app_desktop.views.unitKamar_view import UnitKamarApp
-from app_desktop.views.penyewa_view import PenyewaApp
+from app_desktop.views.login_view import LoginFrame
+from app_desktop.views.dashboard import DashboardApp
 
-class HoverButton(tk.Button):
-    def __init__(self, master=None, icon=None, **kw):
-        super().__init__(master=master, **kw)
-        self.default_bg = self["bg"]
-        self.default_fg = self["fg"]
-        self.icon = icon
-        if icon:
-            self.config(image=icon, compound="left")
-        self.bind("<Enter>", self.on_enter)
-        self.bind("<Leave>", self.on_leave)
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("SIkost VibeHouse")
+        self.root.geometry("900x600")
 
-    def on_enter(self, e):
-        self['bg'] = '#1abc9c'
-        self['fg'] = 'white'
+        self.login_frame = LoginFrame(self.root, self.show_main_menu)
+        self.login_frame.pack(fill=tk.BOTH, expand=True)
 
-    def on_leave(self, e):
-        self['bg'] = self.default_bg
-        self['fg'] = self.default_fg
+    def show_main_menu(self):
+        self.login_frame.pack_forget()
+        self.dashboard = DashboardApp(self.root, self.show_login)
+        self.dashboard.pack(fill=tk.BOTH, expand=True)
 
-class MainApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
+    def show_login(self):
+        self.dashboard.pack_forget()
+        self.login_frame = LoginFrame(self.root, self.show_main_menu)
+        self.login_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.title("SIKost VibeHouse")
-        screen_width = self.winfo_screenwidth()
-        screen_height = self.winfo_screenheight()
-        self.geometry(f"{screen_width}x{screen_height}+0+0")
-        self.configure(bg="#ecf0f1")
-
-        # Sidebar frame
-        self.sidebar = tk.Frame(self, width=220, bg="#34495e")
-        self.sidebar.pack(side="left", fill="y")
-
-        # Load icons
-        self.icons = {}
-        self.load_icon("profile", "https://cdn-icons-png.flaticon.com/512/2922/2922510.png", (64, 64))
-        self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1077/1077035.png", (24, 24))
-        self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/681/681494.png", (24, 24))
-        self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/1946/1946429.png", (24, 24))
-        self.load_icon("keluar", "https://cdn-icons-png.flaticon.com/512/159/159707.png", (24, 24))
-
-        # Profile section
-        self.profile_frame = tk.Frame(self.sidebar, bg="#34495e")
-        self.profile_frame.pack(pady=20)
-
-        self.profile_icon_label = tk.Label(self.profile_frame, image=self.icons["profile"], bg="#34495e")
-        self.profile_icon_label.pack()
-
-        self.profile_text = tk.Label(self.profile_frame, text="Halo, Admin", bg="#34495e", fg="white", font=("Segoe UI", 12, "bold"))
-        self.profile_text.pack(pady=(5, 0))
-
-        # Separator line
-        self.separator = tk.Frame(self.sidebar, height=1, bg="#2c3e50")
-        self.separator.pack(fill="x", padx=15, pady=10)
-
-        btn_params = {
-            "fg": "white",
-            "bg": "#2c3e50",
-            "relief": "flat",
-            "compound": "left",
-            "anchor": "w",
-            "padx": 15,
-            "font": ("Segoe UI", 11, "bold"),
-            "cursor": "hand2",
-            "borderwidth": 0,
-            "activebackground": "#1abc9c",
-            "activeforeground": "white",
-        }
-
-        # Tombol Dashboard
-        self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["dashboard"], text=" Dashboard", command=self.show_dashboard, **btn_params)
-        self.btn_dashboard.pack(fill="x", pady=6, padx=10)
-
-        # Kelola Kamar dropdown
-        self.btn_kelola_kamar = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
-        self.btn_kelola_kamar.pack(fill="x", pady=6, padx=10)
-
-        # Submenu Kelola Kamar
-        self.submenu_kelola_kamar = tk.Frame(self.sidebar, bg="#3b4a59")
-
-        btn_submenu_params = {
-            "fg": "white",
-            "bg": "#3b4a59",
-            "relief": "flat",
-            "anchor": "w",
-            "padx": 30,
-            "font": ("Segoe UI", 10),
-            "cursor": "hand2",
-            "borderwidth": 0,
-            "activebackground": "#1abc9c",
-            "activeforeground": "white",
-        }
-
-        self.btn_kamar = tk.Button(self.submenu_kelola_kamar, text="🛏  Kamar", command=self.show_kamar, **btn_submenu_params)
-        self.btn_kamar.pack(fill="x", pady=2)
-
-        self.btn_unit_kamar = tk.Button(self.submenu_kelola_kamar, text="📦  Unit Kamar", command=self.show_unitKamar, **btn_submenu_params)
-        self.btn_unit_kamar.pack(fill="x", pady=2)
-
-        # Tombol Manajemen Penyewa
-        self.btn_penyewa = HoverButton(self.sidebar, icon=self.icons["penyewa"], text=" Manajemen Penyewa", command=self.show_penyewa, **btn_params)
-        self.btn_penyewa.pack(fill="x", pady=6, padx=10)
-
-        # Tombol Keluar
-        self.btn_keluar = HoverButton(self.sidebar, icon=self.icons["keluar"], text=" Keluar", command=self.confirm_exit, **btn_params)
-        self.btn_keluar.config(bg="#e74c3c", activebackground="#c0392b")
-        self.btn_keluar.default_bg = "#e74c3c"
-        self.btn_keluar.pack(fill="x", pady=6, padx=10)
-
-        # Footer
-        self.footer_frame = tk.Frame(self.sidebar, bg="#34495e")
-        self.footer_frame.pack(side='bottom', fill='x', pady=10, padx=10)
-
-        self.footer_label = tk.Label(self.footer_frame, text="© 2025 - Kelompok 3 TIF SB 23", bg="#34495e", fg="white", font=("Segoe UI", 7))
-        self.footer_label.pack()
-
-        # Container
-        self.container = tk.Frame(self, bg="#ecf0f1")
-        self.container.pack(side="left", fill="both", expand=True)
-
-        self.current_frame = None
-        self.show_dashboard()
-
-    def toggle_kelola_kamar(self):
-        if self.submenu_kelola_kamar.winfo_ismapped():
-            self.submenu_kelola_kamar.pack_forget()
-        else:
-            self.submenu_kelola_kamar.pack(fill="x", padx=20, after=self.btn_kelola_kamar)
-
-    def load_icon(self, name, url, size):
-        try:
-            response = requests.get(url)
-            img_data = response.content
-            img = Image.open(BytesIO(img_data))
-            img = img.resize(size, Image.Resampling.LANCZOS)
-            self.icons[name] = ImageTk.PhotoImage(img)
-        except Exception as e:
-            print(f"Gagal load icon {name} dari {url}: {e}")
-            self.icons[name] = None
-
-    def confirm_exit(self):
-        if messagebox.askyesno("Konfirmasi Keluar", "Apakah kamu yakin ingin keluar?"):
-            self.destroy()
-
-    def clear_container(self):
-        if self.current_frame:
-            self.current_frame.destroy()
-            self.current_frame = None
-
-    def show_dashboard(self):
-        self.clear_container()
-        frame = tk.Frame(self.container, bg="#ecf0f1")
-        frame.pack(fill="both", expand=True)
-        label = tk.Label(frame, text="Selamat datang di Dashboard", font=("Arial", 24), bg="#ecf0f1")
-        label.pack(pady=20)
-        self.current_frame = frame
-
-    def show_kamar(self):
-        self.clear_container()
-        kamar_frame = KamarApp(self.container)
-        kamar_frame.pack(fill="both", expand=True)
-        self.current_frame = kamar_frame
-
-    def show_unitKamar(self):
-        self.clear_container()
-        unitKamar_frame = UnitKamarApp(self.container)
-        unitKamar_frame.pack(fill="both", expand=True)
-        self.current_frame = unitKamar_frame
-
-    def show_penyewa(self):
-        self.clear_container()
-        penyewa_frame = PenyewaApp(self.container)
-        penyewa_frame.pack(fill="both", expand=True)
-        self.current_frame = penyewa_frame
-
+    def show_login(self):
+        self.dashboard.pack_forget()
+        self.login_frame = LoginFrame(self.root, self.show_main_menu)
+        self.login_frame.pack(fill=tk.BOTH, expand=True)
 
 if __name__ == "__main__":
-    app = MainApp()
-    app.mainloop()
+    root = tk.Tk()
+    root.state("zoomed")
+    app = App(root)
+    root.mainloop()
