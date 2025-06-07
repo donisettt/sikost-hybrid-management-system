@@ -137,6 +137,21 @@ class UnitKamarController:
             logging.error(f"Error checking kd_unit existence: {e}")
             return False
 
+    def get_kuota_kamar(self, kd_kamar):
+        query = "SELECT kuota FROM kamar WHERE kd_kamar = %s"
+        params = (kd_kamar,)
+        result = self.db.query_one(query, params)
+        if result:
+            return result['kuota']
+        else:
+            raise ValueError("Kode kamar tidak ditemukan")
+
+    def count_unit_kamar(self, kd_kamar):
+        query = "SELECT COUNT(*) as total FROM unit_kamar WHERE kd_kamar = %s"
+        params = (kd_kamar,)
+        result = self.db.query_one(query, params)
+        return result['total'] if result else 0
+
     def close_connection(self):
         try:
             self.db.close()

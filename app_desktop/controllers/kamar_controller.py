@@ -84,5 +84,20 @@ class KamarController:
             kamar_list.append(kamar)
         return kamar_list
 
+    def generate_kd_kamar(self):
+        query = "SELECT kd_kamar FROM kamar ORDER BY kd_kamar DESC LIMIT 1"
+        self.db.execute(query)
+        result = self.db.fetchone()
+
+        if result:
+            last_code = result["kd_kamar"]
+            last_number = int(last_code.split('-')[1])
+            new_number = last_number + 1
+        else:
+            new_number = 1
+
+        new_code = f"KVH-{new_number:03d}"
+        return new_code
+
     def close_connection(self):
         self.db.close()

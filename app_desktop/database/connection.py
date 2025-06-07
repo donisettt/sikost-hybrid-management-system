@@ -55,3 +55,14 @@ class Database:
             self.cursor.close()
         if self.conn:
             self.conn.close()
+
+    def query_one(self, query, params=None):
+        try:
+            if params:
+                self.cursor.execute(query, params)
+            else:
+                self.cursor.execute(query)
+            return self.cursor.fetchone()
+        except Error as e:
+            print(f"Query one gagal: {e}")
+            return None

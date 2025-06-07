@@ -39,7 +39,7 @@ class KamarApp(tk.Frame):
         frame_input = tk.LabelFrame(self, text="Form Kamar", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode Kamar", "Nama Kamar", "Tipe", "Kuota", "Harga", "Fasilitas"]
+        labels = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Harga", "Fasilitas"]
         self.entries = {}
 
         for i, label_text in enumerate(labels):
@@ -94,6 +94,7 @@ class KamarApp(tk.Frame):
         vsb.pack(side='right', fill='y')
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+        self.generate_kode_otomatis()
         self.load_data()
 
     def load_data(self):
@@ -114,7 +115,7 @@ class KamarApp(tk.Frame):
         kd = self.entries['kode_kamar'].get().strip()
         nama = self.entries['nama_kamar'].get().strip()
         tipe = self.entries['tipe'].get().strip()
-        kuota = self.entries['kuota'].get().strip()
+        kuota = self.entries['jumlah_kamar'].get().strip()
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
@@ -174,6 +175,7 @@ class KamarApp(tk.Frame):
         for ent in self.entries.values():
             ent.delete(0, 'end')
         self.tree.selection_remove(self.tree.selection())
+        self.generate_kode_otomatis()
 
     def on_tree_select(self, event):
         selected = self.tree.focus()
@@ -190,8 +192,8 @@ class KamarApp(tk.Frame):
             self.entries['tipe'].delete(0, 'end')
             self.entries['tipe'].insert(0, values[2])
 
-            self.entries['kuota'].delete(0, 'end')
-            self.entries['kuota'].insert(0, values[3])
+            self.entries['jumlah_kamar'].delete(0, 'end')
+            self.entries['jumlah_kamar'].insert(0, values[3])
 
             self.entries['harga'].delete(0, 'end')
             self.entries['harga'].insert(0, values[4])
@@ -218,3 +220,10 @@ class KamarApp(tk.Frame):
                 kamar.harga,
                 kamar.fasilitas
             ))
+
+    def generate_kode_otomatis(self):
+        kd_baru = self.controller.generate_kd_kamar()
+        self.entries['kode_kamar'].config(state='normal')
+        self.entries['kode_kamar'].delete(0, 'end')
+        self.entries['kode_kamar'].insert(0, kd_baru)
+        self.entries['kode_kamar'].config(state='disabled')

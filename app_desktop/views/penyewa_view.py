@@ -17,6 +17,7 @@ class PenyewaApp(tk.Frame):
 
         self.configure(bg=self.bg_color)
         self.controller = PenyewaController()
+        self.kode_unit_list = self.controller.fetch_kode_unit()
 
         style = ttk.Style()
         style.theme_use("default")
@@ -45,9 +46,16 @@ class PenyewaApp(tk.Frame):
         for i, label_text in enumerate(labels):
             lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=i, column=0, sticky="w", pady=6)
-            ent = ttk.Entry(frame_input, width=40)
-            ent.grid(row=i, column=1, pady=6, padx=(5,0))
-            self.entries[label_text.lower().replace(" ", "_")] = ent
+
+            key = label_text.lower().replace(" ", "_")
+            if key == "kode_unit":
+                cb = ttk.Combobox(frame_input, values=self.kode_unit_list, state="readonly", width=38)
+                cb.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[key] = cb
+            else:
+                ent = ttk.Entry(frame_input, width=40)
+                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
@@ -93,6 +101,7 @@ class PenyewaApp(tk.Frame):
         vsb.pack(side='right', fill='y')
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+        self.generate_kode_otomatis()
         self.load_data()
 
     def load_data(self):
@@ -118,7 +127,7 @@ class PenyewaApp(tk.Frame):
         kd_unit = self.entries['kode_unit'].get().strip()
 
         if not kd or not nama:
-            messagebox.showwarning("Peringatan", "Kode dan Nama Penyewa wajib diisi!")
+            messagebox.showwarning("Peringatan", "Nama Penyewa wajib diisi!")
             return
 
         penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
@@ -152,16 +161,20 @@ class PenyewaApp(tk.Frame):
             return
         confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus penyewa {kd}?")
         if confirm:
-            self.controller.hapus_kamar(kd)
+            self.controller.hapus_penyewa(kd)
             messagebox.showinfo("Sukses", "Data penyewa berhasil dihapus.")
             self.load_data()
             self.clear_form()
 
     def clear_form(self):
         self.entries['kode_penyewa'].config(state='normal')
-        for ent in self.entries.values():
-            ent.delete(0, 'end')
+        for key, widget in self.entries.items():
+            if isinstance(widget, ttk.Combobox):
+                widget.set('')
+            else:
+                widget.delete(0, 'end')
         self.tree.selection_remove(self.tree.selection())
+        self.generate_kode_otomatis()  # Tambahkan ini
 
     def on_tree_select(self, event):
         selected = self.tree.focus()
@@ -184,8 +197,7 @@ class PenyewaApp(tk.Frame):
             self.entries['alamat'].delete(0, 'end')
             self.entries['alamat'].insert(0, values[4])
 
-            self.entries['kode_unit'].delete(0, 'end')
-            self.entries['kode_unit'].insert(0, values[5])
+            self.entries['kode_unit'].set(values[5])
 
     def cari_penyewa(self, event):
         keyword = self.entry_search.get().strip()
@@ -206,3 +218,10 @@ class PenyewaApp(tk.Frame):
                 penyewa.alamat,
                 penyewa.kd_unit
             ))
+
+    def generate_kode_otomatis(self):
+        kd_baru = self.controller.generate_kd_penyewa()
+        self.entries['kode_penyewa'].config(state='normal')
+        self.entries['kode_penyewa'].delete(0, 'end')
+        self.entries['kode_penyewa'].insert(0, kd_baru)
+        self.entries['kode_penyewa'].config(state='disabled')

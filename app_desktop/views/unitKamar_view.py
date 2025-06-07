@@ -33,7 +33,6 @@ class UnitKamarApp(tk.Frame):
         self.create_search_section()
         self.create_table_section()
 
-        # Data unit kamar akan disimpan di sini supaya bisa dipakai untuk cari
         self.data_unit_kamar = []
         self.load_data()
 
@@ -42,15 +41,22 @@ class UnitKamarApp(tk.Frame):
         form.pack(padx=20, pady=(0, 10), fill=tk.X)
 
         self.entries = {}
-        labels = ["Kode Unit", "Kode Kamar"]
+        labels = ["Kode Kamar", "Kode Unit"]
         for i, label in enumerate(labels):
-            tk.Label(form, text=label, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=i, column=0, sticky="w", pady=6)
+            tk.Label(form, text=label, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=i, column=0,
+                                                                                                       sticky="w",
+                                                                                                       pady=6)
             key = label.lower().replace(" ", "_")
             if label == "Kode Kamar":
                 kamar_list = self.controller.fetch_kamar()
-                kamar_options = [f"{k['kd_kamar']} | {k['nama_kamar']}" for k in kamar_list]
+                if kamar_list:
+                    kamar_options = ["Pilih data kamar"] + [f"{k['kd_kamar']} | {k['nama_kamar']}" for k in kamar_list]
+                else:
+                    kamar_options = ["Tidak ada data"]
                 combo = ttk.Combobox(form, values=kamar_options, state="readonly", width=37)
                 combo.grid(row=i, column=1, pady=6, padx=(5, 0))
+                combo.set(kamar_options[0])
+                combo.bind("<<ComboboxSelected>>", self.generate_kode_unit_otomatis)  # Tambahkan ini
                 self.entries[key] = combo
             else:
                 entry = ttk.Entry(form, width=40)
@@ -129,6 +135,15 @@ class UnitKamarApp(tk.Frame):
         kd_kamar = kd_kamar_full.split("|")[0].strip()
 
         try:
+            # Ambil kuota kamar dari controller
+            kuota = self.controller.get_kuota_kamar(kd_kamar)
+            # Hitung jumlah unit kamar yang sudah ada untuk kd_kamar ini
+            jumlah_unit = self.controller.count_unit_kamar(kd_kamar)
+
+            if jumlah_unit >= kuota:
+                messagebox.showwarning("Peringatan", "Jumlah kamar maksimal.")
+                return
+
             unit = UnitKamar(kd_unit, kd_kamar, status)
             self.controller.tambah_unitKamar(unit)
             messagebox.showinfo("Sukses", "Data berhasil ditambahkan.")
@@ -165,7 +180,7 @@ class UnitKamarApp(tk.Frame):
 
         if messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus unit {kd_unit}?"):
             try:
-                self.controller.delete_unitKamar(kd_unit)
+                self.controller.hapus_unitKamar(kd_unit)
                 messagebox.showinfo("Sukses", "Data berhasil dihapus.")
                 self.load_data()
                 self.clear_form()
@@ -210,3 +225,42 @@ class UnitKamarApp(tk.Frame):
         self.tree.delete(*self.tree.get_children())
         for row in filtered:
             self.tree.insert('', 'end', values=row)
+
+    def generate_kode_unit_otomatis(self, event):
+        kd_kamar_full = self.entries['kode_kamar'].get()
+        if kd_kamar_full == "Pilih data kamar" or kd_kamar_full == "Tidak ada data" or not kd_kamar_full:
+            self.entries['kode_unit'].config(state='normal')
+            self.entries['kode_unit'].delete(0, tk.END)
+            return
+
+        # ambil nama kamar dari pilihan combobox (format: "KVH-001 | Kamar Mawar")
+        parts = kd_kamar_full.split("|")
+        if len(parts) < 2:
+            return
+        nama_kamar = parts[1].strip()  # contoh: "Kamar Mawar"
+
+        # ambil kata terakhir nama kamar untuk jadi prefix kode unit, misal "Mawar" dari "Kamar Mawar"
+        # atau kamu bisa ambil nama kamar tanpa kata "Kamar" dulu, ini contoh ambil kata terakhir:
+        nama_terakhir = nama_kamar.split()[-1].upper()  # "MAWAR"
+
+        # cari data unit kamar yang sudah ada dengan prefix nama_terakhir
+        existing_units = [uk['kd_unit'] for uk in self.data_unit_kamar if uk['kd_unit'].startswith(nama_terakhir)]
+
+        # ambil nomor urut terbesar
+        nomor_terbesar = 0
+        for unit in existing_units:
+            # format kode unit: NAMA-XXX, ambil angka XXX
+            try:
+                nomor = int(unit.split("-")[-1])
+                if nomor > nomor_terbesar:
+                    nomor_terbesar = nomor
+            except:
+                pass
+
+        nomor_baru = nomor_terbesar + 1
+        kode_unit_baru = f"{nama_terakhir}-{nomor_baru:03d}"
+
+        # set kode unit otomatis di entry
+        self.entries['kode_unit'].config(state='normal')
+        self.entries['kode_unit'].delete(0, tk.END)
+        self.entries['kode_unit'].insert(0, kode_unit_baru)

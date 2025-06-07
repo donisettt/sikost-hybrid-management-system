@@ -13,43 +13,34 @@ class HoverButton(tk.Button):
         self.default_bg = self["bg"]
         self.default_fg = self["fg"]
         self.icon = icon
-        self.icon_size = (24, 24)
+        if icon:
+            self.config(image=icon, compound="left")
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
 
     def on_enter(self, e):
-        self['bg'] = '#1abc9c'  # warna teal muda
+        self['bg'] = '#1abc9c'
         self['fg'] = 'white'
-        if self.icon:
-            # zoom icon 1.3x
-            self.zoom_icon(1.3)
 
     def on_leave(self, e):
         self['bg'] = self.default_bg
         self['fg'] = self.default_fg
-        if self.icon:
-            self.zoom_icon(1.0)
-
-    def zoom_icon(self, scale):
-        try:
-            base_img = self.icon._PhotoImage__photo.zoom(int(24*scale), int(24*scale))
-            pass
-        except Exception:
-            pass
 
 class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        self.title("SIKost Dashboard")
+        self.title("SIKost VibeHouse")
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
         self.geometry(f"{screen_width}x{screen_height}+0+0")
         self.configure(bg="#ecf0f1")
 
+        # Sidebar frame
         self.sidebar = tk.Frame(self, width=220, bg="#34495e")
         self.sidebar.pack(side="left", fill="y")
 
+        # Load icons
         self.icons = {}
         self.load_icon("profile", "https://cdn-icons-png.flaticon.com/512/2922/2922510.png", (64, 64))
         self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1077/1077035.png", (24, 24))
@@ -57,6 +48,7 @@ class MainApp(tk.Tk):
         self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/1946/1946429.png", (24, 24))
         self.load_icon("keluar", "https://cdn-icons-png.flaticon.com/512/159/159707.png", (24, 24))
 
+        # Profile section
         self.profile_frame = tk.Frame(self.sidebar, bg="#34495e")
         self.profile_frame.pack(pady=20)
 
@@ -66,11 +58,11 @@ class MainApp(tk.Tk):
         self.profile_text = tk.Label(self.profile_frame, text="Halo, Admin", bg="#34495e", fg="white", font=("Segoe UI", 12, "bold"))
         self.profile_text.pack(pady=(5, 0))
 
+        # Separator line
         self.separator = tk.Frame(self.sidebar, height=1, bg="#2c3e50")
         self.separator.pack(fill="x", padx=15, pady=10)
 
         btn_params = {
-            "master": self.sidebar,
             "fg": "white",
             "bg": "#2c3e50",
             "relief": "flat",
@@ -84,34 +76,65 @@ class MainApp(tk.Tk):
             "activeforeground": "white",
         }
 
-        self.btn_dashboard = HoverButton(icon=self.icons["dashboard"], text=" Dashboard", command=self.show_dashboard, **btn_params)
+        # Tombol Dashboard
+        self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["dashboard"], text=" Dashboard", command=self.show_dashboard, **btn_params)
         self.btn_dashboard.pack(fill="x", pady=6, padx=10)
 
-        self.btn_kamar = HoverButton(icon=self.icons["kamar"], text=" Manajemen Kamar", command=self.show_kamar, **btn_params)
-        self.btn_kamar.pack(fill="x", pady=6, padx=10)
+        # Kelola Kamar dropdown
+        self.btn_kelola_kamar = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
+        self.btn_kelola_kamar.pack(fill="x", pady=6, padx=10)
 
-        self.btn_unitKamar = HoverButton(icon=self.icons["kamar"], text=" Manajemen Unit Kamar", command=self.show_unitKamar, **btn_params)
-        self.btn_unitKamar.pack(fill="x", pady=6, padx=10)
+        # Submenu Kelola Kamar
+        self.submenu_kelola_kamar = tk.Frame(self.sidebar, bg="#3b4a59")
 
-        self.btn_penyewa = HoverButton(icon=self.icons["penyewa"], text=" Manajemen Penyewa", command=self.show_penyewa, **btn_params)
+        btn_submenu_params = {
+            "fg": "white",
+            "bg": "#3b4a59",
+            "relief": "flat",
+            "anchor": "w",
+            "padx": 30,
+            "font": ("Segoe UI", 10),
+            "cursor": "hand2",
+            "borderwidth": 0,
+            "activebackground": "#1abc9c",
+            "activeforeground": "white",
+        }
+
+        self.btn_kamar = tk.Button(self.submenu_kelola_kamar, text="🛏  Kamar", command=self.show_kamar, **btn_submenu_params)
+        self.btn_kamar.pack(fill="x", pady=2)
+
+        self.btn_unit_kamar = tk.Button(self.submenu_kelola_kamar, text="📦  Unit Kamar", command=self.show_unitKamar, **btn_submenu_params)
+        self.btn_unit_kamar.pack(fill="x", pady=2)
+
+        # Tombol Manajemen Penyewa
+        self.btn_penyewa = HoverButton(self.sidebar, icon=self.icons["penyewa"], text=" Manajemen Penyewa", command=self.show_penyewa, **btn_params)
         self.btn_penyewa.pack(fill="x", pady=6, padx=10)
 
-        self.btn_keluar = HoverButton(icon=self.icons["keluar"], text=" Keluar", command=self.confirm_exit, **btn_params)
+        # Tombol Keluar
+        self.btn_keluar = HoverButton(self.sidebar, icon=self.icons["keluar"], text=" Keluar", command=self.confirm_exit, **btn_params)
         self.btn_keluar.config(bg="#e74c3c", activebackground="#c0392b")
         self.btn_keluar.default_bg = "#e74c3c"
         self.btn_keluar.pack(fill="x", pady=6, padx=10)
 
+        # Footer
         self.footer_frame = tk.Frame(self.sidebar, bg="#34495e")
         self.footer_frame.pack(side='bottom', fill='x', pady=10, padx=10)
 
         self.footer_label = tk.Label(self.footer_frame, text="© 2025 - Kelompok 3 TIF SB 23", bg="#34495e", fg="white", font=("Segoe UI", 7))
         self.footer_label.pack()
 
+        # Container
         self.container = tk.Frame(self, bg="#ecf0f1")
         self.container.pack(side="left", fill="both", expand=True)
 
         self.current_frame = None
         self.show_dashboard()
+
+    def toggle_kelola_kamar(self):
+        if self.submenu_kelola_kamar.winfo_ismapped():
+            self.submenu_kelola_kamar.pack_forget()
+        else:
+            self.submenu_kelola_kamar.pack(fill="x", padx=20, after=self.btn_kelola_kamar)
 
     def load_icon(self, name, url, size):
         try:
