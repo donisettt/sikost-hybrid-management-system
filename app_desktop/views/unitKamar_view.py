@@ -71,12 +71,27 @@ class UnitKamarApp(tk.Frame):
         tk.Radiobutton(status_frame, text="Kosong", variable=self.status_var, value="kosong", bg=self.entry_bg, font=("Segoe UI", 10)).pack(side='left', padx=(0, 10))
         tk.Radiobutton(status_frame, text="Terisi", variable=self.status_var, value="terisi", bg=self.entry_bg, font=("Segoe UI", 10)).pack(side='left')
 
+        style = ttk.Style()
+        style.theme_use("default")
+
+        style.configure("Hijau.TButton", background="#4CAF50", foreground="white", font=("Segoe UI", 10, "bold"))
+        style.map("Hijau.TButton", background=[("active", "#45a049")])
+
+        style.configure("Biru.TButton", background="#2196F3", foreground="white", font=("Segoe UI", 10, "bold"))
+        style.map("Biru.TButton", background=[("active", "#1976D2")])
+
+        style.configure("Merah.TButton", background="#f44336", foreground="white", font=("Segoe UI", 10, "bold"))
+        style.map("Merah.TButton", background=[("active", "#d32f2f")])
+
+        style.configure("Abu.TButton", background="#9E9E9E", foreground="white", font=("Segoe UI", 10))
+        style.map("Abu.TButton", background=[("active", "#757575")])
+
         btn_frame = tk.Frame(form, bg=self.entry_bg)
         btn_frame.grid(row=0, column=2, rowspan=3, padx=15)
-        ttk.Button(btn_frame, text="Tambah", command=self.tambah_unitKamar).pack(fill='x', pady=4)
-        ttk.Button(btn_frame, text="Update", command=self.update_unitKamar).pack(fill='x', pady=4)
-        ttk.Button(btn_frame, text="Hapus", command=self.hapus_unitKamar).pack(fill='x', pady=4)
-        ttk.Button(btn_frame, text="Clear", command=self.clear_form).pack(fill='x', pady=4)
+        ttk.Button(btn_frame, text="Tambah", command=self.tambah_unitKamar, style="Hijau.TButton").pack(fill='x', pady=4)
+        ttk.Button(btn_frame, text="Update", command=self.update_unitKamar, style="Biru.TButton").pack(fill='x', pady=4)
+        ttk.Button(btn_frame, text="Hapus", command=self.hapus_unitKamar, style="Merah.TButton").pack(fill='x', pady=4)
+        ttk.Button(btn_frame, text="Clear", command=self.clear_form, style="Abu.TButton").pack(fill='x', pady=4)
 
     def create_search_section(self):
         frame_search = tk.Frame(self, bg=self.bg_color)

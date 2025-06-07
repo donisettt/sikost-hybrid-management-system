@@ -51,17 +51,25 @@ class PenyewaApp(tk.Frame):
 
             if key == "kode_unit":
                 if not self.kode_unit_list:
-                    # kalau list kosong
                     cb = ttk.Combobox(frame_input, values=["Tidak ada data"], state="readonly", width=38)
-                    cb.current(0)  # set langsung ke "Tidak ada data"
+                    cb.current(0)
                 else:
-                    # kalau list ada isi
                     unit_options = ["Silahkan pilih kode unit"] + self.kode_unit_list
                     cb = ttk.Combobox(frame_input, values=unit_options, state="readonly", width=38)
-                    cb.current(0)  # set default ke placeholder
-
+                    cb.current(0)
                 cb.grid(row=i, column=1, pady=6, padx=(5, 0))
                 self.entries[key] = cb
+
+            elif key == "jenis_kelamin":
+                self.jk_var = tk.StringVar()
+                jk_frame = tk.Frame(frame_input, bg=self.entry_bg)
+                jk_frame.grid(row=i, column=1, pady=6, padx=(5, 0), sticky="w")
+
+                rb_l = tk.Radiobutton(jk_frame, text="Laki-laki", variable=self.jk_var, value="Laki-laki", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_p = tk.Radiobutton(jk_frame, text="Perempuan", variable=self.jk_var, value="Perempuan", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_l.pack(side="left", padx=5)
+                rb_p.pack(side="left", padx=5)
+                self.entries[key] = self.jk_var
 
             else:
                 ent = ttk.Entry(frame_input, width=40)
@@ -132,7 +140,7 @@ class PenyewaApp(tk.Frame):
     def tambah_penyewa(self):
         kd = self.entries['kode_penyewa'].get().strip()
         nama = self.entries['nama'].get().strip()
-        jk = self.entries['jenis_kelamin'].get().strip()
+        jk = self.entries['jenis_kelamin'].get()
         no_hp = self.entries['no_hp'].get().strip()
         alamat = self.entries['alamat'].get().strip()
         kd_unit = self.entries['kode_unit'].get().strip()
@@ -140,6 +148,8 @@ class PenyewaApp(tk.Frame):
         if not kd or not nama:
             messagebox.showwarning("Peringatan", "Nama Penyewa wajib diisi!")
             return
+        elif not jk:
+            messagebox.showwarning("Peringatan", "Pilih jenis kelamin penyewa!")
 
         penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
         self.controller.tambah_penyewa(penyewa)
@@ -150,7 +160,7 @@ class PenyewaApp(tk.Frame):
     def update_penyewa(self):
         kd = self.entries['kode_penyewa'].get().strip()
         nama = self.entries['nama'].get().strip()
-        jk = self.entries['jenis_kelamin'].get().strip()
+        jk = self.entries['jenis_kelamin'].get()
         no_hp = self.entries['no_hp'].get().strip()
         alamat = self.entries['alamat'].get().strip()
         kd_unit = self.entries['kode_unit'].get().strip()
@@ -183,10 +193,12 @@ class PenyewaApp(tk.Frame):
         for key, widget in self.entries.items():
             if isinstance(widget, ttk.Combobox):
                 widget.set('')
+            elif isinstance(widget, tk.StringVar):
+                widget.set('')
             else:
                 widget.delete(0, 'end')
         self.tree.selection_remove(self.tree.selection())
-        self.generate_kode_otomatis()  # Tambahkan ini
+        self.generate_kode_otomatis()
 
     def on_tree_select(self, event):
         selected = self.tree.focus()
@@ -200,8 +212,7 @@ class PenyewaApp(tk.Frame):
             self.entries['nama'].delete(0, 'end')
             self.entries['nama'].insert(0, values[1])
 
-            self.entries['jenis_kelamin'].delete(0, 'end')
-            self.entries['jenis_kelamin'].insert(0, values[2])
+            self.entries['jenis_kelamin'].set(values[2])
 
             self.entries['no_hp'].delete(0, 'end')
             self.entries['no_hp'].insert(0, values[3])

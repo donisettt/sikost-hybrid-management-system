@@ -17,6 +17,7 @@ class KamarController:
                 nama_kamar=row["nama_kamar"],
                 tipe=row["tipe"],
                 jumlah_kamar=row["jumlah_kamar"],
+                kuota=row["kuota"],
                 harga=row["harga"],
                 fasilitas=row["fasilitas"]
             )
@@ -25,14 +26,15 @@ class KamarController:
 
     def tambah_kamar(self, kamar: Kamar):
         query = """
-            INSERT INTO kamar (kd_kamar, nama_kamar, tipe, jumlah_kamar, harga, fasilitas)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO kamar (kd_kamar, nama_kamar, tipe, jumlah_kamar, kuota, harga, fasilitas)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
         params = (
             kamar.kd_kamar,
             kamar.nama_kamar,
             kamar.tipe,
             kamar.jumlah_kamar,
+            kamar.kuota,
             kamar.harga,
             kamar.fasilitas
         )
@@ -42,13 +44,14 @@ class KamarController:
     def update_kamar(self, kamar: Kamar):
         query = """
         UPDATE kamar
-        SET nama_kamar = %s, tipe = %s, jumlah_kamar = %s, harga = %s, fasilitas = %s
+        SET nama_kamar = %s, tipe = %s, jumlah_kamar = %s, kuota = %s, harga = %s, fasilitas = %s
         WHERE kd_kamar = %s
         """
         params = (
             kamar.nama_kamar,
             kamar.tipe,
             kamar.jumlah_kamar,
+            kamar.kuota,
             kamar.harga,
             kamar.fasilitas,
             kamar.kd_kamar
@@ -64,10 +67,10 @@ class KamarController:
     def cari_kamar(self, keyword):
         query = """
         SELECT * FROM kamar
-        WHERE kd_kamar LIKE %s OR nama_kamar LIKE %s OR tipe LIKE %s
+        WHERE kd_kamar LIKE %s OR nama_kamar LIKE %s OR tipe LIKE %s OR kuota LIKE %s
         """
         like_keyword = f"%{keyword}%"
-        params = (like_keyword, like_keyword, like_keyword)
+        params = (like_keyword, like_keyword, like_keyword, like_keyword)
         self.db.execute(query, params)
         result = self.db.fetchall()
 
@@ -78,6 +81,7 @@ class KamarController:
                 nama_kamar=row["nama_kamar"],
                 tipe=row["tipe"],
                 jumlah_kamar=row["jumlah_kamar"],
+                kuota=row["kuota"],
                 harga=row["harga"],
                 fasilitas=row["fasilitas"]
             )

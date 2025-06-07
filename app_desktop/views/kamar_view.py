@@ -39,12 +39,11 @@ class KamarApp(tk.Frame):
         frame_input = tk.LabelFrame(self, text="Form Kamar", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Harga", "Fasilitas"]
+        labels = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Maksimal Penghuni", "Harga", "Fasilitas"]
         self.entries = {}
 
         for i, label_text in enumerate(labels):
-            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10),
-                           bg=self.entry_bg, fg=self.fg_color)
+            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=i, column=0, sticky="w", pady=6)
             ent = ttk.Entry(frame_input, width=40)
             ent.grid(row=i, column=1, pady=6, padx=(5,0))
@@ -79,10 +78,10 @@ class KamarApp(tk.Frame):
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kd_kamar", "nama_kamar", "tipe", "jumlah_kamar", "harga", "fasilitas")
+        columns = ("kd_kamar", "nama_kamar", "tipe", "jumlah_kamar", "kuota", "harga", "fasilitas")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        header_names = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Harga", "Fasilitas"]
+        header_names = ["Kode Kamar", "Nama Kamar", "Tipe", "Jumlah Kamar", "Maksimal Penghuni","Harga", "Fasilitas"]
         for col, header in zip(columns, header_names):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
@@ -107,6 +106,7 @@ class KamarApp(tk.Frame):
                 kamar.nama_kamar,
                 kamar.tipe,
                 kamar.jumlah_kamar,
+                f"{kamar.kuota} orang",
                 kamar.harga,
                 kamar.fasilitas
             ))
@@ -116,6 +116,7 @@ class KamarApp(tk.Frame):
         nama = self.entries['nama_kamar'].get().strip()
         tipe = self.entries['tipe'].get().strip()
         jumlah_kamar = self.entries['jumlah_kamar'].get().strip()
+        kuota = self.entries['maksimal_penghuni'].get().strip()
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
@@ -129,9 +130,9 @@ class KamarApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Harga harus berupa angka!")
             return
 
-        kamar = Kamar(kd, nama, tipe, jumlah_kamar, harga_int, fasilitas)
+        kamar = Kamar(kd, nama, tipe, jumlah_kamar, kuota, harga_int, fasilitas)
         self.controller.tambah_kamar(kamar)
-        messagebox.showinfo("Sukses", "Data kamar berhasil ditambahkan.")
+        messagebox.showinfo("Sukses", f"{nama} berhasil ditambahkan.")
         self.load_data()
         self.clear_form()
 
@@ -140,6 +141,7 @@ class KamarApp(tk.Frame):
         nama = self.entries['nama_kamar'].get().strip()
         tipe = self.entries['tipe'].get().strip()
         jumlah_kamar = self.entries['jumlah_kamar'].get().strip()
+        kuota = self.entries['maksimal_penghuni'].get().strip()
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
@@ -152,7 +154,7 @@ class KamarApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Harga harus berupa angka!")
             return
 
-        kamar = Kamar(kd, nama, tipe, jumlah_kamar, harga_int, fasilitas)
+        kamar = Kamar(kd, nama, tipe, jumlah_kamar, kuota, harga_int, fasilitas)
         self.controller.update_kamar(kamar)
         messagebox.showinfo("Sukses", f"{nama} berhasil diupdate.")
         self.load_data()
@@ -196,11 +198,15 @@ class KamarApp(tk.Frame):
             self.entries['jumlah_kamar'].delete(0, 'end')
             self.entries['jumlah_kamar'].insert(0, values[3])
 
+            self.entries['maksimal_penghuni'].delete(0, 'end')
+            kuota_bersih = str(values[4]).replace(" orang", "").strip()
+            self.entries['maksimal_penghuni'].insert(0, kuota_bersih)
+
             self.entries['harga'].delete(0, 'end')
-            self.entries['harga'].insert(0, values[4])
+            self.entries['harga'].insert(0, values[5])
 
             self.entries['fasilitas'].delete(0, 'end')
-            self.entries['fasilitas'].insert(0, values[5])
+            self.entries['fasilitas'].insert(0, values[6])
 
     def cari_kamar(self, event):
         keyword = self.entry_search.get().strip()
@@ -218,6 +224,7 @@ class KamarApp(tk.Frame):
                 kamar.nama_kamar,
                 kamar.tipe,
                 kamar.jumlah_kamar,
+                kamar.kuota,
                 kamar.harga,
                 kamar.fasilitas
             ))

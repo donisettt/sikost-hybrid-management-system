@@ -15,8 +15,8 @@ class UsersController:
             users = User(
                 kode_user=row["kode_user"],
                 nama=row["nama"],
-                username=["username"],
-                password=["password"],
+                username=row["username"],
+                password=row["password"],
                 role=row["role"]
             )
             users_list.append(users)
