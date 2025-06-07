@@ -11,15 +11,10 @@ class App:
         self.login_frame = LoginFrame(self.root, self.show_main_menu)
         self.login_frame.pack(fill=tk.BOTH, expand=True)
 
-    def show_main_menu(self):
+    def show_main_menu(self, user_data):
         self.login_frame.pack_forget()
-        self.dashboard = DashboardApp(self.root, self.show_login)
+        self.dashboard = DashboardApp(self.root, self.show_login, user_data)
         self.dashboard.pack(fill=tk.BOTH, expand=True)
-
-    def show_login(self):
-        self.dashboard.pack_forget()
-        self.login_frame = LoginFrame(self.root, self.show_main_menu)
-        self.login_frame.pack(fill=tk.BOTH, expand=True)
 
     def show_login(self):
         self.dashboard.pack_forget()

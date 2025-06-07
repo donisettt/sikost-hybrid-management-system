@@ -6,6 +6,7 @@ from io import BytesIO
 from app_desktop.views.kamar_view import KamarApp
 from app_desktop.views.unitKamar_view import UnitKamarApp
 from app_desktop.views.penyewa_view import PenyewaApp
+from app_desktop.views.users_view import UserApp
 
 class HoverButton(tk.Button):
     def __init__(self, master=None, icon=None, **kw):
@@ -26,11 +27,13 @@ class HoverButton(tk.Button):
         self['bg'] = self.default_bg
         self['fg'] = self.default_fg
 
-class DashboardApp(tk.Frame):  # ✅ REPLACE tk.Tk with tk.Frame
-    def __init__(self, master, on_logout_callback):
+class DashboardApp(tk.Frame):
+    def __init__(self, master, on_logout_callback, user_data):
         super().__init__(master)
         self.master = master
         self.on_logout_callback = on_logout_callback
+        self.user_data = user_data
+
         self.pack(fill="both", expand=True)
         self.configure(bg="#ecf0f1")
 
@@ -50,7 +53,13 @@ class DashboardApp(tk.Frame):  # ✅ REPLACE tk.Tk with tk.Frame
         self.profile_icon_label = tk.Label(self.profile_frame, image=self.icons["profile"], bg="#34495e")
         self.profile_icon_label.pack()
 
-        self.profile_text = tk.Label(self.profile_frame, text="Halo, Admin", bg="#34495e", fg="white", font=("Segoe UI", 12, "bold"))
+        self.profile_text = tk.Label(
+            self.profile_frame,
+            text=f"Halo, {self.user_data['nama']}",
+            bg="#34495e",
+            fg="white",
+            font=("Segoe UI", 12, "bold")
+        )
         self.profile_text.pack(pady=(5, 0))
 
         self.separator = tk.Frame(self.sidebar, height=1, bg="#2c3e50")
@@ -71,6 +80,9 @@ class DashboardApp(tk.Frame):  # ✅ REPLACE tk.Tk with tk.Frame
         }
 
         self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["dashboard"], text=" Dashboard", command=self.show_dashboard, **btn_params)
+        self.btn_dashboard.pack(fill="x", pady=6, padx=10)
+
+        self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola User", command=self.show_user, **btn_params)
         self.btn_dashboard.pack(fill="x", pady=6, padx=10)
 
         self.btn_kelola_kamar = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
@@ -169,5 +181,8 @@ class DashboardApp(tk.Frame):  # ✅ REPLACE tk.Tk with tk.Frame
         penyewa_frame.pack(fill="both", expand=True)
         self.current_frame = penyewa_frame
 
-
-
+    def show_user(self):
+        self.clear_container()
+        user_frame = UserApp(self.container)
+        user_frame.pack(fill="both", expand=True)
+        self.current_frame = user_frame

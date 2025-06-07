@@ -88,8 +88,9 @@ class LoginFrame(ttk.Frame):
     def login(self):
         username = self.entry_user.get()
         password = self.entry_pass.get()
-        if self.db.cek_login(username, password):
-            self.on_login_success()
-            messagebox.showinfo("Login Sukses", "Berhasil masuk")
+
+        user_data = self.db.cek_login(username, password)
+        if user_data:
+            self.on_login_success(user_data)
         else:
             messagebox.showerror("Login Gagal", "Username atau password salah.")
