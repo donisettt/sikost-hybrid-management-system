@@ -49,12 +49,30 @@ class UserApp(tk.Frame):
             ent_key = label_text.lower().replace(" ", "_")
 
             if ent_key == "password":
-                ent = ttk.Entry(frame_input, width=40, show="*")  # 🔒 Password tersembunyi
+                ent = ttk.Entry(frame_input, width=40, show="*")
+                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[ent_key] = ent
+
+            elif ent_key == "kode_user":
+                ent = ttk.Entry(frame_input, width=40, state='disabled')
+                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[ent_key] = ent
+
+            elif ent_key == "role":
+                self.role_var = tk.StringVar(value="admin")
+                frame_radio = tk.Frame(frame_input, bg=self.entry_bg)
+                frame_radio.grid(row=i, column=1, pady=6, padx=(5, 0), sticky='w')
+
+                rb_admin = ttk.Radiobutton(frame_radio, text="Admin", variable=self.role_var, value="admin")
+                rb_petugas = ttk.Radiobutton(frame_radio, text="Petugas", variable=self.role_var, value="petugas")
+
+                rb_admin.pack(side='left', padx=5)
+                rb_petugas.pack(side='left', padx=5)
+
             else:
                 ent = ttk.Entry(frame_input, width=40)
-
-            ent.grid(row=i, column=1, pady=6, padx=(5, 0))
-            self.entries[ent_key] = ent
+                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[ent_key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
@@ -101,6 +119,7 @@ class UserApp(tk.Frame):
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.load_data()
+        self.clear_form()
 
     def load_data(self):
         for item in self.tree.get_children():
@@ -111,24 +130,24 @@ class UserApp(tk.Frame):
                 user.kode_user,
                 user.nama,
                 user.username,
-                user.password,
+                "●●●●●●●",
                 user.role,
             ))
 
     def tambah_users(self):
-        kd = self.entries['kode_user'].get().strip()
+        kd = self.controller.generate_kode_user()
         nama = self.entries['nama'].get().strip()
         username = self.entries['username'].get().strip()
         password = self.entries['password'].get().strip()
-        role = self.entries['role'].get().strip()
+        role = self.role_var.get()
 
-        if not kd or not nama:
-            messagebox.showwarning("Peringatan", "Kode dan Nama kamar wajib diisi!")
+        if not nama:
+            messagebox.showwarning("Peringatan", "Nama user wajib diisi!")
             return
 
         user = User(kd, nama, username, password, role)
         self.controller.tambah_users(user)
-        messagebox.showinfo("Sukses", "User berhasil ditambahkan.")
+        messagebox.showinfo("Sukses", f"User {nama} berhasil ditambahkan dengan kode {kd}.")
         self.load_data()
         self.clear_form()
 
@@ -137,7 +156,7 @@ class UserApp(tk.Frame):
         nama = self.entries['nama'].get().strip()
         username = self.entries['username'].get().strip()
         password = self.entries['password'].get().strip()
-        role = self.entries['role'].get().strip()
+        role = self.role_var.get()
 
         if not kd:
             messagebox.showwarning("Peringatan", "Pilih User yang akan diupdate!")
@@ -163,9 +182,12 @@ class UserApp(tk.Frame):
             self.clear_form()
 
     def clear_form(self):
-        self.entries['kode_user'].config(state='normal')
-        for ent in self.entries.values():
+        for ent_key, ent in self.entries.items():
+            ent.config(state='normal')
             ent.delete(0, 'end')
+        new_kode = self.controller.generate_kode_user()
+        self.entries['kode_user'].insert(0, new_kode)
+        self.entries['kode_user'].config(state='disabled')
         self.tree.selection_remove(self.tree.selection())
 
     def on_tree_select(self, event):
@@ -186,8 +208,7 @@ class UserApp(tk.Frame):
             self.entries['password'].delete(0, 'end')
             self.entries['password'].insert(0, values[3])
 
-            self.entries['role'].delete(0, 'end')
-            self.entries['role'].insert(0, values[4])
+            role = self.role_var.get()
 
     def cari_users(self, event):
         keyword = self.entry_search.get().strip()

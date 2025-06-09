@@ -79,5 +79,20 @@ class UsersController:
             users_list.append(user)
         return users_list
 
+    def generate_kode_user(self):
+        query = "SELECT kode_user FROM users WHERE kode_user LIKE 'USR-VH-%' ORDER BY kode_user DESC LIMIT 1"
+        self.db.execute(query)
+        result = self.db.fetchone()
+
+        if result:
+            last_kode = result['kode_user']
+            last_number = int(last_kode.split('-')[-1])
+            new_number = last_number + 1
+        else:
+            new_number = 1
+
+        new_kode = f"USR-VH-{new_number:03d}"
+        return new_kode
+
     def close_connection(self):
         self.db.close()
