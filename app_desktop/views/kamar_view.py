@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkinter import filedialog
+import pandas as pd
 from app_desktop.models.kamar import Kamar
 from app_desktop.controllers.kamar_controller import KamarController
 
@@ -55,11 +57,13 @@ class KamarApp(tk.Frame):
         self.btn_add = tk.Button(frame_buttons, text="Tambah", command=self.tambah_kamar, fg="white", bg="#4CAF50")
         self.btn_update = tk.Button(frame_buttons, text="Update", command=self.update_kamar, fg="white", bg="#2196F3")
         self.btn_delete = tk.Button(frame_buttons, text="Hapus", command=self.hapus_kamar, fg="white", bg="#f44336")
+        self.btn_import = tk.Button(frame_buttons, text="Import", command=self.import_kamar, fg="white", bg="#FF9800")
         self.btn_clear = tk.Button(frame_buttons, text="Clear", command=self.clear_form, fg="white", bg="#9E9E9E")
 
         self.btn_add.pack(fill='x', pady=4)
         self.btn_update.pack(fill='x', pady=4)
         self.btn_delete.pack(fill='x', pady=4)
+        self.btn_import.pack(fill='x', pady=4)
         self.btn_clear.pack(fill='x', pady=4)
 
         frame_search = tk.Frame(self, bg=self.bg_color)
@@ -228,6 +232,44 @@ class KamarApp(tk.Frame):
                 kamar.harga,
                 kamar.fasilitas
             ))
+
+    def import_kamar(self):
+        file_path = filedialog.askopenfilename(
+            title="Pilih File",
+            filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv")]
+        )
+        if not file_path:
+            return
+
+        try:
+            if file_path.endswith('.csv'):
+                self.controller.import_kamar_dari_file(file_path)
+            else:
+                df = pd.read_excel(file_path)
+
+                required_columns = {"nama_kamar", "tipe", "jumlah_kamar", "kuota", "harga", "fasilitas"}
+                if not required_columns.issubset(df.columns):
+                    messagebox.showerror("Error",
+                                         "Format file tidak valid. Pastikan kolom: " + ", ".join(required_columns))
+                    return
+
+                for _, row in df.iterrows():
+                    kamar = Kamar(
+                        kd_kamar=self.controller.generate_kd_kamar(),
+                        nama_kamar=row["nama_kamar"],
+                        tipe=row["tipe"],
+                        jumlah_kamar=int(row["jumlah_kamar"]),
+                        kuota=int(row["kuota"]),
+                        harga=int(row["harga"]),
+                        fasilitas=row["fasilitas"]
+                    )
+                    self.controller.tambah_kamar(kamar)
+
+            messagebox.showinfo("Sukses", "Import data kamar berhasil.")
+            self.load_data()
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Gagal mengimpor data: {e}")
 
     def generate_kode_otomatis(self):
         kd_baru = self.controller.generate_kd_kamar()

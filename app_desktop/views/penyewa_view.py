@@ -7,6 +7,7 @@ class PenyewaApp(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
+        # Warna & Styling tetap sama
         self.bg_color = "#f0f4f8"
         self.fg_color = "#2c3e50"
         self.entry_bg = "#ffffff"
@@ -51,11 +52,11 @@ class PenyewaApp(tk.Frame):
 
             if key == "kode_unit":
                 if not self.kode_unit_list:
-                    cb = ttk.Combobox(frame_input, values=["Tidak ada data"], state="readonly", width=38)
+                    cb = ttk.Combobox(frame_input, values=["Tidak ada data"], state="disabled", width=38)
                     cb.current(0)
                 else:
                     unit_options = ["Silahkan pilih kode unit"] + self.kode_unit_list
-                    cb = ttk.Combobox(frame_input, values=unit_options, state="readonly", width=38)
+                    cb = ttk.Combobox(frame_input, values=unit_options, state="disabled", width=38)
                     cb.current(0)
                 cb.grid(row=i, column=1, pady=6, padx=(5, 0))
                 self.entries[key] = cb
@@ -199,6 +200,7 @@ class PenyewaApp(tk.Frame):
                 widget.delete(0, 'end')
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
+        self.entries['kode_unit'].config(state='disabled')  # Disable saat tambah
 
     def on_tree_select(self, event):
         selected = self.tree.focus()
@@ -220,6 +222,7 @@ class PenyewaApp(tk.Frame):
             self.entries['alamat'].delete(0, 'end')
             self.entries['alamat'].insert(0, values[4])
 
+            self.entries['kode_unit'].config(state='readonly')  # Enable saat edit
             self.entries['kode_unit'].set(values[5])
 
     def cari_penyewa(self, event):

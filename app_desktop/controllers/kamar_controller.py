@@ -1,5 +1,6 @@
 from app_desktop.database.connection import Database
 from app_desktop.models.kamar import Kamar
+import csv
 
 class KamarController:
     def __init__(self):
@@ -102,6 +103,21 @@ class KamarController:
 
         new_code = f"KVH-{new_number:03d}"
         return new_code
+
+    def import_kamar_dari_file(self, filepath):
+        with open(filepath, mode='r', newline='', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                kamar = Kamar(
+                    kd_kamar=self.generate_kd_kamar(),
+                    nama_kamar=row["nama_kamar"],
+                    tipe=row["tipe"],
+                    jumlah_kamar=int(row["jumlah_kamar"]),
+                    kuota=int(row["kuota"]),
+                    harga=int(row["harga"]),
+                    fasilitas=row["fasilitas"]
+                )
+                self.tambah_kamar(kamar)
 
     def close_connection(self):
         self.db.close()
