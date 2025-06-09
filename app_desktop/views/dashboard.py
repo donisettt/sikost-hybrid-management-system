@@ -7,6 +7,10 @@ from app_desktop.views.kamar_view import KamarApp
 from app_desktop.views.unitKamar_view import UnitKamarApp
 from app_desktop.views.penyewa_view import PenyewaApp
 from app_desktop.views.users_view import UserApp
+from app_desktop.views.components.sidebar import Sidebar
+from app_desktop.views.components.navbar import Navbar
+from app_desktop.views.transaksi_bulanan import TransaksiBulananApp
+from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 
 class HoverButton(tk.Button):
     def __init__(self, master=None, icon=None, **kw):
@@ -33,98 +37,49 @@ class DashboardApp(tk.Frame):
         self.master = master
         self.on_logout_callback = on_logout_callback
         self.user_data = user_data
+        self.current_frame = None
 
-        self.pack(fill="both", expand=True)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.configure(bg="#ecf0f1")
 
         self.icons = {}
         self.load_icon("profile", "https://cdn-icons-png.flaticon.com/512/2922/2922510.png", (64, 64))
-        self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1077/1077035.png", (24, 24))
-        self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/681/681494.png", (24, 24))
-        self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/1946/1946429.png", (24, 24))
-        self.load_icon("keluar", "https://cdn-icons-png.flaticon.com/512/159/159707.png", (24, 24))
+        self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1828/1828859.png",(24, 24))  # Dashboard icon
+        self.load_icon("user", "https://cdn-icons-png.flaticon.com/512/847/847969.png", (24, 24))  # Kelola User
+        self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/1946/1946436.png", (24, 24))  # Kelola Kamar
+        self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/921/921347.png",(24, 24))  # Manajemen Penyewa
+        self.load_icon("transaksi", "https://cdn-icons-png.flaticon.com/512/833/833524.png",(24, 24))  # Icon transaksi, aku pilih yg kasir/ticket vibes
 
-        self.sidebar = tk.Frame(self, width=220, bg="#34495e")
-        self.sidebar.pack(side="left", fill="y")
-
-        self.profile_frame = tk.Frame(self.sidebar, bg="#34495e")
-        self.profile_frame.pack(pady=20)
-
-        self.profile_icon_label = tk.Label(self.profile_frame, image=self.icons["profile"], bg="#34495e")
-        self.profile_icon_label.pack()
-
-        self.profile_text = tk.Label(
-            self.profile_frame,
-            text=f"Halo, {self.user_data['nama']}",
-            bg="#34495e",
-            fg="white",
-            font=("Segoe UI", 12, "bold")
+        # --- SIDEBAR ---
+        self.sidebar = Sidebar(
+            self,
+            user_data=self.user_data,
+            icons=self.icons,
+            callback_dict={
+                'dashboard': self.show_dashboard,
+                'user': self.show_user,
+                'kamar': self.show_kamar,
+                'unit_kamar': self.show_unitKamar,
+                'penyewa': self.show_penyewa,
+                'transaksi': self.show_transaksi,
+                'logout': self.confirm_exit,
+            }
         )
-        self.profile_text.pack(pady=(5, 0))
+        self.sidebar.grid(row=0, column=0, rowspan=2, sticky="ns")
 
-        self.separator = tk.Frame(self.sidebar, height=1, bg="#2c3e50")
-        self.separator.pack(fill="x", padx=15, pady=10)
+        # --- NAVBAR ---
+        self.navbar = Navbar(
+            self,
+            user_data=self.user_data,
+            on_dashboard_click=self.show_dashboard,
+            on_logout_click=self.confirm_exit
+        )
+        self.navbar.grid(row=0, column=1, sticky="ew")
 
-        btn_params = {
-            "fg": "white",
-            "bg": "#2c3e50",
-            "relief": "flat",
-            "compound": "left",
-            "anchor": "w",
-            "padx": 15,
-            "font": ("Segoe UI", 11, "bold"),
-            "cursor": "hand2",
-            "borderwidth": 0,
-            "activebackground": "#1abc9c",
-            "activeforeground": "white",
-        }
-
-        self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["dashboard"], text=" Dashboard", command=self.show_dashboard, **btn_params)
-        self.btn_dashboard.pack(fill="x", pady=6, padx=10)
-
-        self.btn_dashboard = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola User", command=self.show_user, **btn_params)
-        self.btn_dashboard.pack(fill="x", pady=6, padx=10)
-
-        self.btn_kelola_kamar = HoverButton(self.sidebar, icon=self.icons["kamar"], text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
-        self.btn_kelola_kamar.pack(fill="x", pady=6, padx=10)
-
-        self.submenu_kelola_kamar = tk.Frame(self.sidebar, bg="#3b4a59")
-
-        btn_submenu_params = {
-            "fg": "white",
-            "bg": "#3b4a59",
-            "relief": "flat",
-            "anchor": "w",
-            "padx": 30,
-            "font": ("Segoe UI", 10),
-            "cursor": "hand2",
-            "borderwidth": 0,
-            "activebackground": "#1abc9c",
-            "activeforeground": "white",
-        }
-
-        self.btn_kamar = tk.Button(self.submenu_kelola_kamar, text="🛏  Kamar", command=self.show_kamar, **btn_submenu_params)
-        self.btn_kamar.pack(fill="x", pady=2)
-
-        self.btn_unit_kamar = tk.Button(self.submenu_kelola_kamar, text="📦  Unit Kamar", command=self.show_unitKamar, **btn_submenu_params)
-        self.btn_unit_kamar.pack(fill="x", pady=2)
-
-        self.btn_penyewa = HoverButton(self.sidebar, icon=self.icons["penyewa"], text=" Manajemen Penyewa", command=self.show_penyewa, **btn_params)
-        self.btn_penyewa.pack(fill="x", pady=6, padx=10)
-
-        self.btn_keluar = HoverButton(self.sidebar, icon=self.icons["keluar"], text=" Keluar", command=self.confirm_exit, **btn_params)
-        self.btn_keluar.config(bg="#e74c3c", activebackground="#c0392b")
-        self.btn_keluar.default_bg = "#e74c3c"
-        self.btn_keluar.pack(fill="x", pady=6, padx=10)
-
-        self.footer_frame = tk.Frame(self.sidebar, bg="#34495e")
-        self.footer_frame.pack(side='bottom', fill='x', pady=10, padx=10)
-
-        self.footer_label = tk.Label(self.footer_frame, text="© 2025 - Kelompok 3 TIF SB 23", bg="#34495e", fg="white", font=("Segoe UI", 7))
-        self.footer_label.pack()
-
+        # --- CONTAINER UTAMA ---
         self.container = tk.Frame(self, bg="#ecf0f1")
-        self.container.pack(side="left", fill="both", expand=True)
+        self.container.grid(row=1, column=1, sticky="nsew")
 
         self.current_frame = None
         self.show_dashboard()
@@ -158,9 +113,50 @@ class DashboardApp(tk.Frame):
     def show_dashboard(self):
         self.clear_container()
         frame = tk.Frame(self.container, bg="#ecf0f1")
-        frame.pack(fill="both", expand=True)
-        label = tk.Label(frame, text="Selamat datang di Dashboard", font=("Arial", 24), bg="#ecf0f1")
-        label.pack(pady=20)
+        frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # Title
+        title_label = tk.Label(frame, text="Selamat datang di Dashboard", font=("Segoe UI", 20, "bold"), bg="#ecf0f1")
+        title_label.pack(pady=(0, 20))
+
+        # Group info card
+        card_group = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
+        card_group.pack(fill="x", pady=(0, 20))
+
+        group_title = tk.Label(card_group, text="Kelompok 3 - TIF SB 23", font=("Segoe UI", 14, "bold"), bg="white",
+                               fg="#2c3e50")
+        group_title.pack(anchor="w", pady=(0, 10), padx=7)
+
+        anggota_list = [
+            "Doni Setiawan Wahyono 23552011146 | Lead Full Stack Developer",
+            "Lutfi Mahesa Abdul K - 23552011147 | UI/UX Designer & Database Architect",
+            "Aisah Gandari Rahmah - 23552011127 | UI/UX Designer & Database Architect",
+            "Ariyan Kusharthanto - 23552011168 | Project Administrator & Research Analyst",
+            "Indri Rohmawati - 23552011128 | Project Administrator & Research Analyst",
+        ]
+
+        for anggota in anggota_list:
+            label = tk.Label(card_group, text=anggota, font=("Segoe UI", 11), bg="white", fg="#34495e")
+            label.pack(anchor="w", padx=10)
+
+        # Teknologi yang Digunakan card
+        card_tech = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
+        card_tech.pack(fill="x")
+
+        tech_title = tk.Label(card_tech, text="Teknologi yang Digunakan", font=("Segoe UI", 14, "bold"), bg="white",
+                              fg="#2c3e50")
+        tech_title.pack(anchor="w", pady=(0, 10), padx=7)
+
+        tech_list = [
+            "Bahasa pemrograman: Python (Tkinter)",
+            "Database: MySQL (mysql-connector)",
+            "Tools aplikasi: Laragon, PyCharm, Git, Balsamiq",
+        ]
+
+        for tech in tech_list:
+            label = tk.Label(card_tech, text=tech, font=("Segoe UI", 11), bg="white", fg="#34495e")
+            label.pack(anchor="w", padx=10)
+
         self.current_frame = frame
 
     def show_kamar(self):
@@ -186,3 +182,13 @@ class DashboardApp(tk.Frame):
         user_frame = UserApp(self.container)
         user_frame.pack(fill="both", expand=True)
         self.current_frame = user_frame
+
+    def show_transaksi(self):
+        self.clear_container()
+        transaksi_controller = TransaksiBulananController()
+
+        user_role = self.user_data.get('role', 'petugas')
+
+        transaksi_frame = TransaksiBulananApp(self.container, transaksi_controller, user_role=user_role)
+        transaksi_frame.pack(fill="both", expand=True)
+        self.current_frame = transaksi_frame

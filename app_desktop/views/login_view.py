@@ -14,9 +14,7 @@ class LoginFrame(ttk.Frame):
 
         self.pack_propagate(False)
         self.config(width=600, height=400)
-
         self.configure(padding=20)
-
         self.center_frame = ttk.Frame(self)
         self.center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
@@ -29,7 +27,6 @@ class LoginFrame(ttk.Frame):
         style.configure("TEntry", font=("Segoe UI", 12))
         style.configure("Header.TLabel", font=("Segoe UI", 18, "bold"), foreground="#007ACC")
 
-        # Style custom tombol hijau
         style.configure("Green.TButton",
                         background="#4CAF50",
                         foreground="white",
@@ -60,10 +57,10 @@ class LoginFrame(ttk.Frame):
 
         if self.photo:
             image_label = ttk.Label(self.center_frame, image=self.photo)
-            image_label.pack(pady=(0, 15))  # kasih jarak bawah
+            image_label.pack(pady=(0, 15))
 
         # Header
-        header = ttk.Label(self.center_frame, text="Selamat Datang", style="Header.TLabel")
+        header = ttk.Label(self.center_frame, text="SIkost VibeHouse", style="Header.TLabel")
         header.pack(pady=(0, 15))
 
         # Form frame username & password
@@ -78,12 +75,19 @@ class LoginFrame(ttk.Frame):
         self.entry_pass = ttk.Entry(form_frame, show="*", width=30)
         self.entry_pass.grid(row=1, column=1, pady=6, padx=5)
 
+        # Binding Enter key di kolom password supaya bisa langsung login
+        self.entry_pass.bind("<Return>", self.on_enter_pressed)
+
         # Tombol login
         login_btn = ttk.Button(form_frame, text="🚀 Login", command=self.login, style="Green.TButton")
         login_btn.grid(row=2, column=0, columnspan=2, pady=15, sticky="ew")
 
         form_frame.columnconfigure(0, weight=1)
         form_frame.columnconfigure(1, weight=1)
+
+    def on_enter_pressed(self, event):
+        if self.entry_pass.get().strip():
+            self.login()
 
     def login(self):
         username = self.entry_user.get()
