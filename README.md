@@ -21,12 +21,12 @@ Fitur utama sementara meliputi:
 
 Anggota kelompok:
 
-| Nama                      | NIM          |
-|---------------------------|--------------|
-| Doni Setiawan Wahyono     | 23552011146  |
-| Aisah Gandari Rahmah      | 2355201127   |
-| Lutfi Mahesa Abdul Kholiq | 23552011147  |
-| Ariyan Kusharthanto       | 23552011168  |
-| Indri Rohmawati           | 23552011128  |
+| Nama                                | Jobdesk                                  |
+|-------------------------------------|------------------------------------------|
+| Doni Setiawan Wahyono - 23552011146 | Lead Full Stack Developer                |
+| Aisah Gandari Rahmah - 23552011127  | UI/UX Designer & Database Architect      |
+| Lutfi Mahesa Abdul K - 23552011147  | UI/UX Designer & Database Architect      |
+| Ariyan Kusharthanto - 23552011168   | Project Administrator & Research Analyst |
+| Indri Rohmawati  -  23552011137     | Project Administrator & Research Analyst                                         |
 
 

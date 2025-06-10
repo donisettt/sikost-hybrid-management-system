@@ -86,6 +86,9 @@ class Sidebar(tk.Frame):
             self.btn_transaksi.pack(fill="x", pady=6, padx=10)
 
         elif role == 'petugas':
+            self.btn_dashboard = HoverButton(self, icon=self.icons.get("dashboard"), text=" Dashboard", command=callback_dict['dashboard'], **btn_params)
+            self.btn_dashboard.pack(fill="x", pady=6, padx=10)
+
             self.btn_kelola_kamar = HoverButton(self, icon=self.icons.get("kamar"), text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
             self.btn_kelola_kamar.pack(fill="x", pady=6, padx=10)
 
