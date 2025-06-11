@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from datetime import datetime
+from app_desktop.views.transaksi_view import TransaksiApp
+
 
 class TransaksiBulananApp(tk.Frame):
     def __init__(self, parent, controller, user_role):
@@ -132,7 +134,14 @@ class TransaksiBulananApp(tk.Frame):
                 btn_hapus.pack(pady=(0, 10))
 
     def lihat_detail_transaksi(self, kd_transaksi_bulanan):
-        messagebox.showinfo("Detail Transaksi", "Duh can aya euy datana 😭")
+        self.destroy()
+        detail_frame = TransaksiApp(self.master, kd_transaksi_bulanan)
+        detail_frame.pack(fill='both', expand=True)
+
+    def show_transaksi_view(self):
+        self.frame.pack_forget()
+        self.transaksi_view = TransaksiApp(self.root)
+        self.transaksi_view.pack(fill=tk.BOTH, expand=True)
 
     def hapus_transaksi_bulanan(self, kd_transaksi, nama_bulan, tahun):
         if messagebox.askyesno("Konfirmasi", f"Yakin mau hapus transaksi {nama_bulan} {tahun}?"):
