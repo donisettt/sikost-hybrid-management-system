@@ -10,7 +10,6 @@ from app_desktop.views.users_view import UserApp
 from app_desktop.views.components.sidebar import Sidebar
 from app_desktop.views.components.navbar import Navbar
 from app_desktop.views.transaksi_bulanan import TransaksiBulananApp
-from app_desktop.views.fasilitas_view import FasilitasApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 
 class HoverButton(tk.Button):

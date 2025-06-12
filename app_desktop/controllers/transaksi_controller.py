@@ -1,21 +1,114 @@
 from app_desktop.database.connection import Database
 from app_desktop.models.transaksi import Transaksi
+from datetime import datetime
 
 class TransaksiController:
     def __init__(self):
         self.db = Database()
 
-    def get_unit_kamar(self):
+    def fetch_kode_unit(self):
         query = """
-            SELECT unit_kamar.*, kamar.harga
-            FROM unit_kamar
-            JOIN kamar ON unit_kamar.kd_kamar = kamar.kd_kamar;
+            SELECT kd_unit FROM unit_kamar
         """
-        results = self.db.execute(query)
-        if results:
-            return results
-        else:
-            return []
+        self.db.execute(query)
+        result = self.db.fetchall()
+        kode_units = [row["kd_unit"] for row in result]
+        return kode_units
+
+    def fetch_kode_unit_kosong(self):
+        query = """
+            SELECT kd_unit FROM unit_kamar
+            WHERE status = 'kosong'
+        """
+        self.db.execute(query)
+        result = self.db.fetchall()
+        return [row["kd_unit"] for row in result]
+
+    def fetch_kode_penyewa(self):
+        query = "SELECT kd_penyewa, nama FROM penyewa"
+        self.db.execute(query)
+        results = self.db.fetchall()
+        return [{"kd_penyewa": r["kd_penyewa"], "nama": r["nama"]} for r in results]
+
+    def get_harga_by_kode_unit(self, kd_unit):
+        query = """
+            SELECT k.harga 
+            FROM kamar k
+            JOIN unit_kamar uk ON uk.kd_kamar = k.kd_kamar
+            WHERE uk.kd_unit = %s
+        """
+        self.db.execute(query, (kd_unit,))
+        result = self.db.fetchone()
+        return result['harga'] if result else 0
+
+    def fetch_kd_unit_kosong(self, kd_penyewa):
+        semua_kd_unit = self.fetch_kode_unit()
+        kd_unit_aktif = self.fetch_kd_unit_terisi(kd_penyewa)
+
+        kd_unit_kosong = [uk for uk in semua_kd_unit if uk["kd_unit"] not in kd_unit_aktif]
+        return kd_unit_kosong
+
+    def fetch_kd_unit_terisi(self, kd_penyewa):
+        query = "SELECT kd_unit FROM transaksi"
+        params = []
+        if kd_penyewa:
+            query += " WHERE kd_penyewa = %s"
+            params.append(kd_penyewa)
+
+        self.db.execute(query, params)
+        return [row["kd_unit"] for row in self.db.fetchall()]
+
+    def fetch_penyewa_belum_transaksi(self, kd_transaksi_bulanan):
+        semua_penyewa = self.fetch_kode_penyewa()
+        penyewa_aktif = self.fetch_penyewa_yang_sudah_transaksi(kd_transaksi_bulanan)
+
+        penyewa_belum = [p for p in semua_penyewa if p["kd_penyewa"] not in penyewa_aktif]
+        return penyewa_belum
+
+    def fetch_penyewa_yang_sudah_transaksi(self, kd_transaksi_bulanan):
+        query = "SELECT kd_penyewa FROM transaksi"
+        params = []
+        if kd_transaksi_bulanan:
+            query += " WHERE kd_transaksi_bulanan = %s"
+            params.append(kd_transaksi_bulanan)
+
+        self.db.execute(query, params)
+        return [row["kd_penyewa"] for row in self.db.fetchall()]
+
+    def get_kd_penyewa_by_name(self, nama_penyewa):
+        query = "SELECT kd_penyewa FROM penyewa WHERE nama = %s"
+        self.db.execute(query, (nama_penyewa,))
+        result = self.db.fetchone()
+        return result['kd_penyewa'] if result else None
+
+    def get_unit_dan_harga_by_penyewa(self, kd_penyewa):
+        query = """
+            SELECT uk.kd_unit, k.harga
+            FROM penyewa p
+            JOIN unit_kamar uk ON p.kd_unit = uk.kd_unit
+            JOIN kamar k ON uk.kd_kamar = k.kd_kamar
+            WHERE p.kd_penyewa = %s AND uk.status = 'terisi'
+        """
+        self.db.execute(query, (kd_penyewa,))
+        result = self.db.fetchone()
+        if result:
+            return result["kd_unit"], result["harga"]
+        return None, None
+
+    def get_unit_info_by_kd_penyewa(self, kd_penyewa):
+        query = """
+            SELECT u.kd_unit, u.status 
+            FROM penyewa p
+            JOIN unit u ON p.kd_unit = u.kd_unit
+            WHERE p.kd_penyewa = ?
+        """
+        self.db.execute(query, (kd_penyewa,))
+        result = self.db.fetchone()
+
+        if result:
+            kd_unit, status = result
+            return {"kd_unit": kd_unit, "status": status}
+        return None
 
     def fetch_transaksi(self):
         query = """
@@ -65,6 +158,18 @@ class TransaksiController:
             transaksi.status_transaksi
         )
         self.db.execute(query, params)
+        self.db.commit()
+
+        query_update_status = """
+            UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s
+        """
+        self.db.execute(query_update_status, (transaksi.kd_unit,))
+        self.db.commit()
+
+        query_update_penyewa_unit = """
+            UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s
+        """
+        self.db.execute(query_update_penyewa_unit, (transaksi.kd_unit, transaksi.kd_penyewa))
         self.db.commit()
 
     def update_transaksi(self, transaksi: Transaksi):
@@ -121,19 +226,28 @@ class TransaksiController:
             transaksi_list.append(transaksi)
         return transaksi_list
 
-    def generate_kode_transaksi(self):
-        query = "SELECT kd_transaksi FROM transaksi WHERE kd_transaksi LIKE 'TRX-VH-%' ORDER BY kd_transaksi DESC LIMIT 1"
-        self.db.execute(query)
+    def generate_kode_transaksi(self, kd_transaksi_bulanan):
+        nama_bulan, tahun = self.get_bulan_tahun_by_kd(kd_transaksi_bulanan)
+        bulan_str = nama_bulan[:3].upper()
+        tahun_str = str(tahun)[-2:]
+        prefix = f"TRX-{bulan_str}{tahun_str}-"
+
+        query = f"""
+            SELECT kd_transaksi FROM transaksi
+            WHERE kd_transaksi LIKE %s
+            ORDER BY kd_transaksi DESC LIMIT 1
+        """
+        self.db.execute(query, (prefix + "%",))
         result = self.db.fetchone()
 
         if result:
-            last_kode = result['kd_transaksi']
-            last_number = int(last_kode.split('-')[-1])
+            last_kode = result["kd_transaksi"]
+            last_number = int(last_kode.split("-")[-1])
             new_number = last_number + 1
         else:
             new_number = 1
 
-        new_kode = f"TRX-VH-{new_number:03d}"
+        new_kode = f"{prefix}{new_number:03d}"
         return new_kode
 
     def fetch_transaksi_by_bulanan(self, kd_transaksi_bulanan):

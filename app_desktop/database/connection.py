@@ -46,6 +46,14 @@ class Database:
             print(f"Fetchall gagal: {e}")
             return []
 
+    def fetchall_query(self, query):
+        cursor = self.conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()
+        columns = [desc[0] for desc in cursor.description]
+        result = [dict(zip(columns, row)) for row in result]
+        return result
+
     def fetchone(self):
         try:
             return self.cursor.fetchone()

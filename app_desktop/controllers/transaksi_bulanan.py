@@ -7,21 +7,17 @@ class TransaksiBulananController:
 
     def fetch_transaksi_bulanan(self):
         query = """
-            SELECT 
-                tb.kd_transaksi_bulanan,
-                tb.nama_bulan, 
-                tb.tahun, 
-                COUNT(t.kd_transaksi) AS jumlah
-            FROM transaksi_bulanan tb
-            LEFT JOIN transaksi t 
-                ON MONTH(t.tanggal_transaksi) = MONTH(STR_TO_DATE(tb.nama_bulan, '%M'))
-                AND YEAR(t.tanggal_transaksi) = tb.tahun
-            GROUP BY tb.kd_transaksi_bulanan, tb.nama_bulan, tb.tahun
-            ORDER BY tb.tahun DESC, FIELD(tb.nama_bulan, 
-                'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember')
+        SELECT 
+            tb.nama_bulan,
+            tb.tahun,
+            COUNT(t.kd_transaksi) AS jumlah,
+            tb.kd_transaksi_bulanan
+        FROM transaksi_bulanan tb
+        LEFT JOIN transaksi t ON tb.kd_transaksi_bulanan = t.kd_transaksi_bulanan
+        GROUP BY tb.kd_transaksi_bulanan, tb.nama_bulan, tb.tahun
+        ORDER BY tb.tahun DESC
         """
-        self.db.execute(query)
-        return self.db.fetchall()
+        return self.db.fetchall_query(query)
 
     def insert_transaksi_bulanan(self, kd_transaksi_bulanan, bulan, tahun):
         try:

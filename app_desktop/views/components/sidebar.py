@@ -79,9 +79,6 @@ class Sidebar(tk.Frame):
             self.btn_unit_kamar = tk.Button(self.submenu_kelola_kamar, text="📦  Unit Kamar", command=callback_dict['unit_kamar'], **btn_submenu_params)
             self.btn_unit_kamar.pack(fill="x", pady=2)
 
-            self.btn_fasilitas = tk.Button(self.submenu_kelola_kamar, text="🛏  Fasilitas", command=callback_dict['fasilitas'], **btn_submenu_params)
-            self.btn_fasilitas.pack(fill="x", pady=2)
-
             self.btn_penyewa = HoverButton(self, icon=self.icons.get("penyewa"), text=" Manajemen Penyewa", command=callback_dict['penyewa'], **btn_params)
             self.btn_penyewa.pack(fill="x", pady=6, padx=10)
 
