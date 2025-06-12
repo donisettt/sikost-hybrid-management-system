@@ -19,6 +19,7 @@ class KamarApp(tk.Frame):
 
         self.configure(bg=self.bg_color)
         self.controller = KamarController()
+        self.register_validations()
 
         style = ttk.Style()
         style.theme_use("default")
@@ -47,9 +48,18 @@ class KamarApp(tk.Frame):
         for i, label_text in enumerate(labels):
             lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=i, column=0, sticky="w", pady=6)
-            ent = ttk.Entry(frame_input, width=40)
-            ent.grid(row=i, column=1, pady=6, padx=(5,0))
-            self.entries[label_text.lower().replace(" ", "_")] = ent
+
+            ent_kwargs = {"width": 40}
+            key = label_text.lower().replace(" ", "_")
+            if key in ["jumlah_kamar", "maksimal_penghuni", "harga"]:
+                ent_kwargs.update({
+                    "validate": "key",
+                    "validatecommand": self.validasi_angka
+                })
+
+            ent = ttk.Entry(frame_input, **ent_kwargs)
+            ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+            self.entries[key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
@@ -115,6 +125,13 @@ class KamarApp(tk.Frame):
                 kamar.fasilitas
             ))
 
+    def validate_integer(self, input):
+        return input.isdigit() or input == ""
+
+    def register_validations(self):
+        vcmd = (self.register(self.validate_integer), "%P")
+        self.validasi_angka = vcmd
+
     def tambah_kamar(self):
         kd = self.entries['kode_kamar'].get().strip()
         nama = self.entries['nama_kamar'].get().strip()
@@ -124,8 +141,23 @@ class KamarApp(tk.Frame):
         harga = self.entries['harga'].get().strip()
         fasilitas = self.entries['fasilitas'].get().strip()
 
-        if not kd or not nama:
-            messagebox.showwarning("Peringatan", "Kode dan Nama kamar wajib diisi!")
+        if not nama:
+            messagebox.showwarning("Peringatan", "Nama kamar wajib diisi!")
+            return
+        elif not tipe:
+            messagebox.showwarning("Peringatan", "Tipe kamar wajib diisi!")
+            return
+        elif not jumlah_kamar:
+            messagebox.showwarning("Peringatan", "Jumlah kamar wajib diisi!")
+            return
+        elif not kuota:
+            messagebox.showwarning("Peringatan", "Maksimal penghuni wajib diisi!")
+            return
+        elif not harga:
+            messagebox.showwarning("Peringatan", "Harga kamar wajib diisi!")
+            return
+        elif not fasilitas:
+            messagebox.showwarning("Peringatan", "Fasilitas kamar wajib diisi!")
             return
 
         try:
