@@ -4,9 +4,10 @@ from tkcalendar import DateEntry
 import datetime
 from app_desktop.models.transaksi import Transaksi
 from app_desktop.controllers.transaksi_controller import TransaksiController
+from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 
 class TransaksiApp(tk.Frame):
-    def __init__(self, parent, kd_transaksi_bulanan=None, controller=None, user_role=None):
+    def __init__(self, parent, kd_transaksi_bulanan=None, controller=None, kembali_callback=None, user_role=None):
         super().__init__(parent)
 
         self.master = parent
@@ -19,6 +20,7 @@ class TransaksiApp(tk.Frame):
         }
         self.nama_penyewa_list = list(self.nama_to_kode_penyewa.keys())
         self.user_role = user_role
+        self.kembali_callback = kembali_callback
 
         self.bg_color = "#f0f4f8"
         self.fg_color = "#2c3e50"
@@ -53,21 +55,48 @@ class TransaksiApp(tk.Frame):
             except:
                 bulan_label = " - Bulan Tidak Diketahui"
 
-        judul = tk.Label(header_bar, text=f"Transaksi{bulan_label}", font=("Segoe UI", 16, "bold"), bg=self.bg_color, fg=self.fg_color)
-        judul.pack(side="top", pady=(5,5), padx=(0, 0))
+        btn_kembali = tk.Button(header_bar, text="← Kembali", command=self.kembali_ke_transaksi_bulanan, bg="#bdc3c7", fg="black", font=("Segoe UI", 10), relief="flat", cursor="hand2")
+        btn_kembali.pack(side="left", padx=(0, 10), pady=(5, 5))
 
-        frame_input = tk.LabelFrame(self, text="Form Transaksi", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
+        judul = tk.Label(header_bar, text=f"Transaksi{bulan_label}", font=("Segoe UI", 16, "bold"), bg=self.bg_color, fg=self.fg_color)
+        judul.pack(side="top", pady=(5, 5))
+
+        frame_input = tk.LabelFrame(self, text="Form Transaksi", font=("Segoe UI", 12, "bold"),
+                                    bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode Transaksi", "Kode Unit", "Penyewa", "Total Harga", "Tanggal Mulai",
-                  "Tanggal Selesai", "Tanggal Transaksi", "Status Transaksi"]
+        labels = ["Kode Transaksi", "Penyewa", "Kode Unit", "Tanggal Transaksi", "Tanggal Mulai",
+                  "Tanggal Selesai", "Total Harga", "Status Transaksi", "Diskon", "Biaya Tambahan", "Jumlah Bayar",
+                  "Uang Penyewa", "Kembalian"]
         self.entries = {}
 
         for i, label_text in enumerate(labels):
-            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
-            lbl.grid(row=i // 2, column=(i % 2) * 2, sticky="w", pady=6, padx=(10, 10))
-
             key = label_text.lower().replace(" ", "_")
+
+            if key == "diskon":
+                row = 3
+                col = 0
+            elif key == "uang_penyewa":
+                row = 3
+                col = 2
+            elif key == "biaya_tambahan":
+                row = 4
+                col = 0
+            elif key == "kembalian":
+                row = 4
+                col = 2
+            elif key == "jumlah_bayar":
+                row = 5
+                col = 0
+            else:
+                row = i // 3
+                col = (i % 3) * 2
+                if i >= 10:
+                    row += 3
+
+            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10),
+                           bg=self.entry_bg, fg=self.fg_color)
+            lbl.grid(row=row, column=col, sticky="w", pady=6, padx=(10, 10))
 
             if key == "kode_unit":
                 if not self.kode_unit_list:
@@ -77,9 +106,10 @@ class TransaksiApp(tk.Frame):
                     unit_options = ["Pilih kode unit"] + self.kode_unit_list
                     cb = ttk.Combobox(frame_input, values=unit_options, width=30, state="readonly")
                     cb.current(0)
-                cb.grid(row=i // 2, column=(i % 2) * 2 + 1, pady=6, padx=(1, 0))
+                cb.grid(row=row, column=col + 1, pady=6, padx=(1, 0), sticky="w")
                 cb.bind("<<ComboboxSelected>>", self.unit_selected)
                 self.entries[key] = cb
+
             elif key == "penyewa":
                 if not self.nama_penyewa_list:
                     cb = ttk.Combobox(frame_input, values=["Tidak ada data"], width=30, state="readonly")
@@ -88,37 +118,62 @@ class TransaksiApp(tk.Frame):
                     penyewa_options = ["Pilih penyewa"] + self.nama_penyewa_list
                     cb = ttk.Combobox(frame_input, values=penyewa_options, width=30, state="readonly")
                     cb.current(0)
-                cb.grid(row=i // 2, column=(i % 2) * 2 + 1, pady=6, padx=(1, 0))
+                cb.grid(row=row, column=col + 1, pady=6, padx=(1, 0), sticky="w")
                 cb.bind("<<ComboboxSelected>>", self.penyewa_selected)
                 self.entries[key] = cb
+
             elif key in ["tanggal_mulai", "tanggal_selesai", "tanggal_transaksi"]:
                 ent = DateEntry(frame_input, width=30, background='darkblue', foreground='white',
                                 borderwidth=2, date_pattern='yyyy-mm-dd', state='readonly')
-                ent.grid(row=i // 2, column=(i % 2) * 2 + 1, pady=6, sticky="w")
+                ent.grid(row=row, column=col + 1, pady=6, sticky="w")
                 if key == "tanggal_mulai":
                     ent.bind("<<DateEntrySelected>>", self.tanggal_mulai_changed)
                 self.entries[key] = ent
+
+            elif key == "status_transaksi":
+                var = tk.StringVar(value="belum_lunas")
+
+                frame_status = tk.Frame(frame_input, bg=self.entry_bg)
+                frame_status.grid(row=row, column=col + 1, pady=6, sticky="w")
+
+                rb_lunas = tk.Radiobutton(frame_status, text="Lunas", variable=var, value="lunas",
+                                          bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_belum = tk.Radiobutton(frame_status, text="Belum Lunas", variable=var, value="belum_lunas",
+                                          bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+
+                rb_lunas.pack(side="left", padx=(0, 10))
+                rb_belum.pack(side="left")
+
+                self.entries[key] = var
+
             else:
                 ent = ttk.Entry(frame_input, width=30)
-                ent.grid(row=i // 2, column=(i % 2) * 2 + 1, pady=6, sticky="w")
+                ent.grid(row=row, column=col + 1, pady=6, sticky="w")
                 self.entries[key] = ent
 
-        frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
-        frame_buttons.grid(row=0, column=4, rowspan=4, padx=(15, 0))
+        # === Frame untuk tombol Update & Hapus (di samping uang penyewa) ===
+        frame_update_delete = tk.Frame(frame_input, bg=self.entry_bg)
+        frame_update_delete.grid(row=3, column=5, sticky="nw", padx=(10, 0), pady=(6, 0))
 
-        self.btn_add = tk.Button(frame_buttons, text="Tambah", command=self.tambah_transaksi,
-                                 fg="white", bg="#4CAF50", width=10)
-        self.btn_update = tk.Button(frame_buttons, text="Update", command=self.update_transaksi,
-                                    fg="white", bg="#2196F3", width=10)
-        self.btn_delete = tk.Button(frame_buttons, text="Hapus", command=self.hapus_transaksi,
-                                    fg="white", bg="#f44336", width=10)
-        self.btn_clear = tk.Button(frame_buttons, text="Clear", command=self.clear_form,
-                                   fg="white", bg="#9E9E9E", width=10)
+        self.btn_update = tk.Button(frame_update_delete, text="Update", command=self.update_transaksi,
+                                    fg="white", bg="#2196F3", width=12)
+        self.btn_update.pack(pady=(0, 5))
 
-        self.btn_add.pack(pady=4)
-        self.btn_delete.pack(pady=4)
-        self.btn_update.pack(pady=4)
-        self.btn_clear.pack(pady=4)
+        self.btn_delete = tk.Button(frame_update_delete, text="Hapus", command=self.hapus_transaksi,
+                                    fg="white", bg="#f44336", width=12)
+        self.btn_delete.pack()
+
+        # === Frame untuk tombol Tambah & Clear (di bawah kembalian, sebaris jumlah bayar) ===
+        frame_add_clear = tk.Frame(frame_input, bg=self.entry_bg)
+        frame_add_clear.grid(row=5, column=2, columnspan=2, sticky="w", padx=(10, 0), pady=(6, 0))
+
+        self.btn_add = tk.Button(frame_add_clear, text="Tambah", command=self.tambah_transaksi,
+                                 fg="white", bg="#4CAF50", width=12)
+        self.btn_add.pack(side="left", padx=(0, 10))
+
+        self.btn_clear = tk.Button(frame_add_clear, text="Clear", command=self.clear_form,
+                                   fg="white", bg="#9E9E9E", width=12)
+        self.btn_clear.pack(side="left")
 
         frame_search = tk.Frame(self, bg=self.bg_color)
         frame_search.pack(fill='x', padx=20, pady=(5, 10))
@@ -156,6 +211,22 @@ class TransaksiApp(tk.Frame):
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.generate_kode_otomatis()
         self.load_data()
+
+    def kembali_ke_transaksi_bulanan(self):
+        self.destroy()
+        if self.kembali_callback:
+            self.kembali_callback()
+
+    def show_transaksi_detail(self, data):
+        self.clear_container()
+        self.current_frame = TransaksiApp(
+            self.container,
+            controller=TransaksiController(),
+            transaksi_data=data,
+            kembali_callback=self.show_transaksi_detail(),  # <== ini kunci
+            user_role=self.user_data['role']
+        )
+        self.current_frame.pack(fill='both', expand=True)
 
     def tanggal_mulai_changed(self, event=None):
         try:
@@ -209,7 +280,7 @@ class TransaksiApp(tk.Frame):
 
     def load_data(self):
         self.tree.delete(*self.tree.get_children())
-        transaksi_list = self.controller.fetch_transaksi_by_bulanan(self.kd_transaksi_bulanan) if self.kd_transaksi_bulanan else self.controller.fetch_transaksi()
+        transaksi_list = self.controller.fetch_transaksi_bulanan(self.kd_transaksi_bulanan) if self.kd_transaksi_bulanan else self.controller.fetch_transaksi()
         for t in transaksi_list:
             self.tree.insert('', 'end', values=(
                 t.kd_transaksi, t.kd_penyewa, t.kd_unit, t.tanggal_mulai,
@@ -217,7 +288,12 @@ class TransaksiApp(tk.Frame):
             ))
 
     def tambah_transaksi(self):
-        data = {key: entry.get() for key, entry in self.entries.items()}
+        data = {}
+        for key, entry in self.entries.items():
+            try:
+                data[key] = entry.get()
+            except AttributeError:
+                data[key] = entry.get_date().strftime('%Y-%m-%d')
         if data["penyewa"] == "Pilih penyewa" or data["kode_unit"] == "Pilih kode unit":
             messagebox.showwarning("Input tidak lengkap", "Pilih penyewa dan kode unit.")
             return

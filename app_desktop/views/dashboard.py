@@ -10,6 +10,7 @@ from app_desktop.views.users_view import UserApp
 from app_desktop.views.components.sidebar import Sidebar
 from app_desktop.views.components.navbar import Navbar
 from app_desktop.views.transaksi_bulanan import TransaksiBulananApp
+from app_desktop.views.transaksi_view import TransaksiApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 
 class HoverButton(tk.Button):
@@ -61,7 +62,6 @@ class DashboardApp(tk.Frame):
                 'user': self.show_user,
                 'kamar': self.show_kamar,
                 'unit_kamar': self.show_unitKamar,
-                'fasilitas': self.show_fasilitas,
                 'penyewa': self.show_penyewa,
                 'transaksi': self.show_transaksi,
                 'logout': self.confirm_exit,
@@ -172,12 +172,6 @@ class DashboardApp(tk.Frame):
         unitKamar_frame.pack(fill="both", expand=True)
         self.current_frame = unitKamar_frame
 
-    def show_fasilitas(self):
-        self.clear_container()
-        fasilitas_frame = FasilitasApp(self.container)
-        fasilitas_frame.pack(fill="both", expand=True)
-        self.current_frame = fasilitas_frame
-
     def show_penyewa(self):
         self.clear_container()
         penyewa_frame = PenyewaApp(self.container)
@@ -191,11 +185,30 @@ class DashboardApp(tk.Frame):
         self.current_frame = user_frame
 
     def show_transaksi(self):
+        print("Menampilkan halaman transaksi bulanan")  # debug log
         self.clear_container()
-        transaksi_controller = TransaksiBulananController()
+        transaksi_bulanan = TransaksiBulananController()
 
         user_role = self.user_data.get('role', 'petugas')
 
-        transaksi_frame = TransaksiBulananApp(self.container, transaksi_controller, user_role=user_role)
+        transaksi_frame = TransaksiBulananApp(self.container, transaksi_bulanan, user_role=user_role)
         transaksi_frame.pack(fill="both", expand=True)
         self.current_frame = transaksi_frame
+
+    def show_transaksi_view(self):
+        self.clear_container()
+        transaksi_view_frame = TransaksiApp(
+            self.container,
+            kembali_callback=self.show_transaksi  # <-- callback ke transaksi bulanan
+        )
+        transaksi_view_frame.pack(fill="both", expand=True)
+        self.current_frame = transaksi_view_frame
+
+    def clear_container(self):
+        if self.current_frame:
+            self.current_frame.destroy()
+            self.current_frame = None
+
+    def set_current_frame(self, frame):
+        self.current_frame = frame
+

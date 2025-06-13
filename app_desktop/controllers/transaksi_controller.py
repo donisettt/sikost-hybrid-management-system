@@ -250,7 +250,7 @@ class TransaksiController:
         new_kode = f"{prefix}{new_number:03d}"
         return new_kode
 
-    def fetch_transaksi_by_bulanan(self, kd_transaksi_bulanan):
+    def fetch_transaksi_bulanan(self, kd_transaksi_bulanan):
         query = """
             SELECT tr.kd_transaksi, tr.kd_transaksi_bulanan, p.nama AS kd_penyewa, uk.kd_unit,
                    tr.tanggal_mulai, tr.tanggal_selesai, tr.tanggal_transaksi,
@@ -278,6 +278,19 @@ class TransaksiController:
             )
             transaksi_list.append(transaksi)
         return transaksi_list
+
+    def get_all_transaksi_bulanan_summary(self):
+        query = """
+            SELECT tb.kd_transaksi_bulanan, tb.nama_bulan, tb.tahun, COUNT(tr.kd_transaksi) as jumlah
+            FROM transaksi_bulanan tb
+            LEFT JOIN transaksi tr ON tb.kd_transaksi_bulanan = tr.kd_transaksi_bulanan
+            GROUP BY tb.kd_transaksi_bulanan, tb.nama_bulan, tb.tahun
+            ORDER BY tb.tahun DESC, tb.nama_bulan DESC
+        """
+        self.db.execute(query)
+        result = self.db.fetchall()
+
+        return result
 
     def get_bulan_tahun_by_kd(self, kd_transaksi_bulanan):
         query = "SELECT nama_bulan, tahun FROM transaksi_bulanan WHERE kd_transaksi_bulanan = %s"
