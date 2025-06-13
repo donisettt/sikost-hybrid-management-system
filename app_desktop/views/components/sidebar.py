@@ -82,8 +82,16 @@ class Sidebar(tk.Frame):
             self.btn_penyewa = HoverButton(self, icon=self.icons.get("penyewa"), text=" Manajemen Penyewa", command=callback_dict['penyewa'], **btn_params)
             self.btn_penyewa.pack(fill="x", pady=6, padx=10)
 
-            self.btn_transaksi = HoverButton(self, icon=self.icons.get("transaksi"), text=" Transaksi", command=callback_dict['transaksi'], **btn_params)
-            self.btn_transaksi.pack(fill="x", pady=6, padx=10)
+            self.btn_kelola_transaksi = HoverButton(self, icon=self.icons.get("transaksi"), text=" Transaksi ▼", command=self.toggle_kelola_transaksi, **btn_params)
+            self.btn_kelola_transaksi.pack(fill="x", pady=6, padx=10)
+
+            self.submenu_kelola_transaksi = tk.Frame(self, bg="#3b4a59")
+            self.btn_transaksi = tk.Button(self.submenu_kelola_transaksi, text="💰  Transaksi Bulanan", command=callback_dict['transaksi'], **btn_submenu_params)
+            self.btn_transaksi.pack(fill="x", pady=2)
+
+            self.btn_pengeluaran = tk.Button(self.submenu_kelola_transaksi, text="📤  Pengeluaran", command=callback_dict['pengeluaran'], **btn_submenu_params)
+            self.btn_pengeluaran.pack(fill="x", pady=2)
+
 
         elif role == 'petugas':
             self.btn_dashboard = HoverButton(self, icon=self.icons.get("dashboard"), text=" Dashboard", command=callback_dict['dashboard'], **btn_params)
@@ -126,3 +134,9 @@ class Sidebar(tk.Frame):
             self.submenu_kelola_kamar.pack_forget()
         else:
             self.submenu_kelola_kamar.pack(fill="x", padx=20, after=self.btn_kelola_kamar)
+
+    def toggle_kelola_transaksi(self):
+        if self.submenu_kelola_transaksi.winfo_ismapped():
+            self.submenu_kelola_transaksi.pack_forget()
+        else:
+            self.submenu_kelola_transaksi.pack(fill="x", padx=20, after=self.btn_kelola_transaksi)

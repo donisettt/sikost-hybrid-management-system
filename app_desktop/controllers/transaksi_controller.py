@@ -41,6 +41,16 @@ class TransaksiController:
         result = self.db.fetchone()
         return result['harga'] if result else 0
 
+    def get_detail_transaksi(self, kd_transaksi):
+        query = "SELECT * FROM transaksi WHERE kd_transaksi = %s"
+        self.db.execute(query, (kd_transaksi,))
+        result = self.db.fetchone()
+
+        print("Result Type:", type(result))  # Debug: Tipe data hasil query
+        print("Result Data:", result)  # Debug: Isi hasil query
+
+        return result if result else {}
+
     def fetch_kd_unit_kosong(self, kd_penyewa):
         semua_kd_unit = self.fetch_kode_unit()
         kd_unit_aktif = self.fetch_kd_unit_terisi(kd_penyewa)

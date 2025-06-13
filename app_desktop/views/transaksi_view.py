@@ -143,8 +143,10 @@ class TransaksiApp(tk.Frame):
                 rb_lunas.pack(side="left", padx=(0, 10))
                 rb_belum.pack(side="left")
 
-                self.entries[key] = var  # StringVar disimpan, ini udah benar
-
+                self.entries[key] = {
+                    "var": var,
+                    "widgets": [rb_lunas, rb_belum]
+                }
 
             else:
                 if key in ["diskon", "biaya_tambahan", "uang_penyewa"]:
@@ -169,15 +171,6 @@ class TransaksiApp(tk.Frame):
         self.entries["biaya_tambahan"].bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
         self.entries["uang_penyewa"].bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
 
-        # frame_update_delete = tk.Frame(frame_input, bg=self.entry_bg)
-        # frame_update_delete.grid(row=3, column=5, sticky="w", padx=(10, 0), pady=(6, 0))
-        #
-        # self.btn_update = tk.Button(frame_update_delete, text="Update", command=self.update_transaksi, fg="white", bg="#2196F3", width=12)
-        # self.btn_update.pack(pady=(0, 5))
-        #
-        # self.btn_delete = tk.Button(frame_update_delete, text="Hapus", command=self.hapus_transaksi, fg="white", bg="#f44336", width=12)
-        # self.btn_delete.pack()
-
         frame_add_clear = tk.Frame(frame_input, bg=self.entry_bg)
         frame_add_clear.grid(row=5, column=2, columnspan=2, sticky="w", padx=(10, 0), pady=(6, 0))
 
@@ -199,9 +192,6 @@ class TransaksiApp(tk.Frame):
 
         btn_reset = ttk.Button(frame_search, text="Reset", command=self.load_data, width=8)
         btn_reset.pack(side='left')
-
-        self.btn_update = tk.Button(frame_search, text="Detail", command=self.update_transaksi, fg="white", bg="#2196F3", width=8)
-        self.btn_update.pack(pady=(6, 4), padx=5)
 
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
@@ -479,19 +469,46 @@ class TransaksiApp(tk.Frame):
     def on_tree_select(self, event):
         selected = self.tree.focus()
         if selected:
-            values = self.tree.item(selected, 'values')
-            keys = ["kode_transaksi", "penyewa", "kode_unit",
-                    "tanggal_transaksi", "tanggal_mulai", "tanggal_selesai", "status_transaksi"]
-            for k, v in zip(keys, values):
-                self.entries[k].config(state='normal')
-                self.entries[k].delete(0, 'end')
-                if k == "penyewa":
-                    nama = next((nama for nama, kode in self.nama_to_kode_penyewa.items() if kode == v), v)
-                    self.entries[k].insert(0, nama)
-                else:
-                    self.entries[k].insert(0, v)
-                if k == 'kode_transaksi':
-                    self.entries[k].config(state='disabled')
+            kode_transaksi = self.tree.item(selected, 'values')[0]
+            detail_data = self.controller.get_detail_transaksi(kode_transaksi)
+
+            for k, v in detail_data.items():
+                entry = self.entries.get(k)
+                if not entry:
+                    continue
+
+                # Input ke setiap field form sesuai tipe-nya
+                if isinstance(entry, tk.Entry):
+                    entry.config(state='normal')
+                    entry.delete(0, 'end')
+                    if k == "penyewa":
+                        nama = next((nama for nama, kode in self.nama_to_kode_penyewa.items() if kode == v), v)
+                        entry.insert(0, nama)
+                    else:
+                        entry.insert(0, str(v))
+                    entry.config(state='readonly')
+
+                elif isinstance(entry, ttk.Combobox):
+                    entry.config(state='readonly')
+                    entry.set(v)
+
+                elif isinstance(entry, DateEntry):
+                    try:
+                        entry.set_date(v)
+                    except:
+                        pass
+                    entry.config(state='disabled')
+
+                elif isinstance(entry, tk.StringVar):
+                    entry.set(v)
+
+            # Disable radio button status_transaksi
+            if "status_transaksi" in self.entries:
+                for widget in self.entries["status_transaksi"]["widgets"]:
+                    widget.config(state="disabled")
+
+            print("Treeview item values:", self.tree.item(selected, 'values'))
+            print("Detail dari DB:", detail_data)
 
     def cari_transaksi(self, event):
         keyword = self.entry_search.get().strip()

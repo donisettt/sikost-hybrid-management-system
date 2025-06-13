@@ -11,6 +11,7 @@ from app_desktop.views.components.sidebar import Sidebar
 from app_desktop.views.components.navbar import Navbar
 from app_desktop.views.transaksi_bulanan import TransaksiBulananApp
 from app_desktop.views.transaksi_view import TransaksiApp
+from app_desktop.views.pengeluaran_view import PengeluaranApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 
 class HoverButton(tk.Button):
@@ -64,6 +65,7 @@ class DashboardApp(tk.Frame):
                 'unit_kamar': self.show_unitKamar,
                 'penyewa': self.show_penyewa,
                 'transaksi': self.show_transaksi,
+                'pengeluaran': self.show_pengeluaran,
                 'logout': self.confirm_exit,
             }
         )
@@ -204,6 +206,12 @@ class DashboardApp(tk.Frame):
         transaksi_view_frame.pack(fill="both", expand=True)
         self.current_frame = transaksi_view_frame
 
+    def show_pengeluaran(self):
+        self.clear_container()
+        pengeluaran_frame = PengeluaranApp(self.container)
+        pengeluaran_frame.pack(fill="both", expand=True)
+        self.current_frame = pengeluaran_frame
+
     def clear_container(self):
         if self.current_frame:
             self.current_frame.destroy()
@@ -211,4 +219,3 @@ class DashboardApp(tk.Frame):
 
     def set_current_frame(self, frame):
         self.current_frame = frame
-
