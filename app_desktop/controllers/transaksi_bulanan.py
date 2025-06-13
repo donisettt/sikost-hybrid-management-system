@@ -44,8 +44,12 @@ class TransaksiBulananController:
 
     def delete_transaksi_bulanan(self, kd_transaksi_bulanan):
         try:
-            query = "DELETE FROM transaksi_bulanan WHERE kd_transaksi_bulanan = %s"
-            self.db.execute(query, (kd_transaksi_bulanan,))
+            delete_transaksi_query = "DELETE FROM transaksi WHERE kd_transaksi_bulanan = %s"
+            self.db.execute(delete_transaksi_query, (kd_transaksi_bulanan,))
+
+            delete_bulanan_query = "DELETE FROM transaksi_bulanan WHERE kd_transaksi_bulanan = %s"
+            self.db.execute(delete_bulanan_query, (kd_transaksi_bulanan,))
+
             self.db.commit()
             return True
         except Exception as e:

@@ -37,7 +37,8 @@ class UnitKamarApp(tk.Frame):
         self.load_data()
 
     def create_form_section(self):
-        form = tk.LabelFrame(self, text="Form Unit Kamar", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
+        form = tk.LabelFrame(self, text="Form Unit Kamar", font=("Segoe UI", 12, "bold"), bg=self.entry_bg,
+                             fg=self.fg_color, padx=20, pady=20)
         form.pack(padx=20, pady=(0, 10), fill=tk.X)
 
         self.entries = {}
@@ -56,21 +57,30 @@ class UnitKamarApp(tk.Frame):
                 combo = ttk.Combobox(form, values=kamar_options, state="readonly", width=37)
                 combo.grid(row=i, column=1, pady=6, padx=(5, 0))
                 combo.set(kamar_options[0])
-                combo.bind("<<ComboboxSelected>>", self.generate_kode_unit_otomatis)  # Tambahkan ini
+                combo.bind("<<ComboboxSelected>>", self.generate_kode_unit_otomatis)
                 self.entries[key] = combo
             else:
                 entry = ttk.Entry(form, width=40)
                 entry.grid(row=i, column=1, pady=6, padx=(5, 0))
                 self.entries[key] = entry
 
-        tk.Label(form, text="Status", font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=2, column=0, sticky="w", pady=6)
-
+        # ========== MODIFIKASI STATUS RADIO ========== #
+        tk.Label(form, text="Status", font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=2, column=0,
+                                                                                                      sticky="w",
+                                                                                                      pady=6)
         self.status_var = tk.StringVar(value="kosong")
-        status_frame = tk.Frame(form, bg=self.entry_bg)
-        status_frame.grid(row=2, column=1, pady=6, sticky="w")
-        tk.Radiobutton(status_frame, text="Kosong", variable=self.status_var, value="kosong", bg=self.entry_bg, font=("Segoe UI", 10)).pack(side='left', padx=(0, 10))
-        tk.Radiobutton(status_frame, text="Terisi", variable=self.status_var, value="terisi", bg=self.entry_bg, font=("Segoe UI", 10)).pack(side='left')
+        self.status_frame = tk.Frame(form, bg=self.entry_bg)
+        self.status_frame.grid(row=2, column=1, pady=6, sticky="w")
 
+        self.rb_kosong = tk.Radiobutton(self.status_frame, text="Kosong", variable=self.status_var, value="kosong",
+                                        bg=self.entry_bg, font=("Segoe UI", 10))
+        self.rb_terisi = tk.Radiobutton(self.status_frame, text="Terisi", variable=self.status_var, value="terisi",
+                                        bg=self.entry_bg, font=("Segoe UI", 10))
+
+        self.rb_kosong.pack(side='left', padx=(0, 10))
+        # self.rb_terisi.pack()  # Belum dipanggil di awal
+
+        # ========== GAYA TOMBOL ========== #
         style = ttk.Style()
         style.theme_use("default")
 
@@ -86,9 +96,11 @@ class UnitKamarApp(tk.Frame):
         style.configure("Abu.TButton", background="#9E9E9E", foreground="white", font=("Segoe UI", 10))
         style.map("Abu.TButton", background=[("active", "#757575")])
 
+        # ========== TOMBOL CRUD ========== #
         btn_frame = tk.Frame(form, bg=self.entry_bg)
         btn_frame.grid(row=0, column=2, rowspan=3, padx=15)
-        ttk.Button(btn_frame, text="Tambah", command=self.tambah_unitKamar, style="Hijau.TButton").pack(fill='x', pady=4)
+        ttk.Button(btn_frame, text="Tambah", command=self.tambah_unitKamar, style="Hijau.TButton").pack(fill='x',
+                                                                                                        pady=4)
         ttk.Button(btn_frame, text="Update", command=self.update_unitKamar, style="Biru.TButton").pack(fill='x', pady=4)
         ttk.Button(btn_frame, text="Hapus", command=self.hapus_unitKamar, style="Merah.TButton").pack(fill='x', pady=4)
         ttk.Button(btn_frame, text="Clear", command=self.clear_form, style="Abu.TButton").pack(fill='x', pady=4)
@@ -164,10 +176,12 @@ class UnitKamarApp(tk.Frame):
             messagebox.showinfo("Sukses", "Data berhasil ditambahkan.")
             self.load_data()
             self.clear_form()
+            self.rb_terisi.pack_forget()
         except Exception as e:
             messagebox.showerror("Gagal", f"Gagal menambahkan data.\n{e}")
 
     def update_unitKamar(self):
+        self.rb_terisi.pack(side='left')
         kd_unit = self.entries['kode_unit'].get().strip()
         kd_kamar_full = self.entries['kode_kamar'].get().strip()
         status = self.status_var.get()
@@ -206,10 +220,12 @@ class UnitKamarApp(tk.Frame):
         self.entries['kode_unit'].delete(0, tk.END)
         self.entries['kode_kamar'].set('')
         self.status_var.set('kosong')
+        self.rb_terisi.pack_forget()
 
     def on_tree_select(self, event):
         selected = self.tree.selection()
         if selected:
+            self.rb_terisi.pack(side='left')
             item = self.tree.item(selected[0])
             kd_unit, kd_kamar, nama_kamar, status = item['values']
             self.entries['kode_unit'].config(state='normal')  # pastikan bisa diedit dulu

@@ -94,13 +94,12 @@ class TransaksiApp(tk.Frame):
                 if i >= 10:
                     row += 3
 
-            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10),
-                           bg=self.entry_bg, fg=self.fg_color)
+            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=row, column=col, sticky="w", pady=6, padx=(10, 10))
 
             if key == "kode_unit":
                 if not self.kode_unit_list:
-                    cb = ttk.Combobox(frame_input, values=["Tidak ada data"], width=30, state="readonly")
+                    cb = ttk.Combobox(frame_input, values=["Unit kamar penuh"], width=30, state="readonly")
                     cb.current(0)
                 else:
                     unit_options = ["Pilih kode unit"] + self.kode_unit_list
@@ -112,7 +111,7 @@ class TransaksiApp(tk.Frame):
 
             elif key == "penyewa":
                 if not self.nama_penyewa_list:
-                    cb = ttk.Combobox(frame_input, values=["Tidak ada data"], width=30, state="readonly")
+                    cb = ttk.Combobox(frame_input, values=["Sudah bayar semua"], width=30, state="readonly")
                     cb.current(0)
                 else:
                     penyewa_options = ["Pilih penyewa"] + self.nama_penyewa_list
@@ -131,7 +130,7 @@ class TransaksiApp(tk.Frame):
                 self.entries[key] = ent
 
             elif key == "status_transaksi":
-                var = tk.StringVar(value="belum_lunas")
+                var = tk.StringVar(value="lunas")
 
                 frame_status = tk.Frame(frame_input, bg=self.entry_bg)
                 frame_status.grid(row=row, column=col + 1, pady=6, sticky="w")
@@ -144,60 +143,75 @@ class TransaksiApp(tk.Frame):
                 rb_lunas.pack(side="left", padx=(0, 10))
                 rb_belum.pack(side="left")
 
-                self.entries[key] = var
+                self.entries[key] = var  # StringVar disimpan, ini udah benar
+
 
             else:
-                ent = ttk.Entry(frame_input, width=30)
+                if key in ["diskon", "biaya_tambahan", "uang_penyewa"]:
+                    vcmd = (self.register(self.hanya_angka), "%P")
+                    ent = ttk.Entry(frame_input, width=30, validate="key", validatecommand=vcmd)
+                else:
+                    ent = ttk.Entry(frame_input, width=30)
+
                 ent.grid(row=row, column=col + 1, pady=6, sticky="w")
                 self.entries[key] = ent
 
-        # === Frame untuk tombol Update & Hapus (di samping uang penyewa) ===
-        frame_update_delete = tk.Frame(frame_input, bg=self.entry_bg)
-        frame_update_delete.grid(row=3, column=5, sticky="nw", padx=(10, 0), pady=(6, 0))
+                if key in ["total_harga", "diskon", "biaya_tambahan", "uang_penyewa"]:
+                    ent.bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
 
-        self.btn_update = tk.Button(frame_update_delete, text="Update", command=self.update_transaksi,
-                                    fg="white", bg="#2196F3", width=12)
-        self.btn_update.pack(pady=(0, 5))
+                if key in ["diskon", "biaya_tambahan"]:
+                    ent.insert(0, "0")
 
-        self.btn_delete = tk.Button(frame_update_delete, text="Hapus", command=self.hapus_transaksi,
-                                    fg="white", bg="#f44336", width=12)
-        self.btn_delete.pack()
+                if key in ["jumlah_bayar", "kembalian"]:
+                    ent.config(state="readonly")
 
-        # === Frame untuk tombol Tambah & Clear (di bawah kembalian, sebaris jumlah bayar) ===
+        self.entries["diskon"].bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
+        self.entries["biaya_tambahan"].bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
+        self.entries["uang_penyewa"].bind("<KeyRelease>", self.update_jumlah_bayar_otomatis)
+
+        # frame_update_delete = tk.Frame(frame_input, bg=self.entry_bg)
+        # frame_update_delete.grid(row=3, column=5, sticky="w", padx=(10, 0), pady=(6, 0))
+        #
+        # self.btn_update = tk.Button(frame_update_delete, text="Update", command=self.update_transaksi, fg="white", bg="#2196F3", width=12)
+        # self.btn_update.pack(pady=(0, 5))
+        #
+        # self.btn_delete = tk.Button(frame_update_delete, text="Hapus", command=self.hapus_transaksi, fg="white", bg="#f44336", width=12)
+        # self.btn_delete.pack()
+
         frame_add_clear = tk.Frame(frame_input, bg=self.entry_bg)
         frame_add_clear.grid(row=5, column=2, columnspan=2, sticky="w", padx=(10, 0), pady=(6, 0))
 
-        self.btn_add = tk.Button(frame_add_clear, text="Tambah", command=self.tambah_transaksi,
-                                 fg="white", bg="#4CAF50", width=12)
-        self.btn_add.pack(side="left", padx=(0, 10))
+        self.btn_add = tk.Button(frame_add_clear, text="Batal", command=self.clear_form, fg="white", bg="#9E9E9E", width=8)
+        self.btn_add.pack(side="left", padx=(152, 10))
 
-        self.btn_clear = tk.Button(frame_add_clear, text="Clear", command=self.clear_form,
-                                   fg="white", bg="#9E9E9E", width=12)
+        self.btn_clear = tk.Button(frame_add_clear, text="Bayar", command=self.tambah_transaksi, fg="white", bg="#4CAF50", width=8)
         self.btn_clear.pack(side="left")
 
         frame_search = tk.Frame(self, bg=self.bg_color)
         frame_search.pack(fill='x', padx=20, pady=(5, 10))
 
-        lbl_search = tk.Label(frame_search, text="🔍 Cari Transaksi:", font=("Segoe UI", 10),
-                              bg=self.bg_color, fg=self.fg_color)
+        lbl_search = tk.Label(frame_search, text="🔍 Cari Transaksi:", font=("Segoe UI", 10), bg=self.bg_color, fg=self.fg_color)
         lbl_search.pack(side='left', padx=(0, 5))
 
         self.entry_search = ttk.Entry(frame_search, width=50)
         self.entry_search.pack(side='left', fill='x', expand=True, padx=(0, 5))
         self.entry_search.bind("<KeyRelease>", self.cari_transaksi)
 
-        btn_reset = ttk.Button(frame_search, text="Reset", command=self.load_data)
+        btn_reset = ttk.Button(frame_search, text="Reset", command=self.load_data, width=8)
         btn_reset.pack(side='left')
+
+        self.btn_update = tk.Button(frame_search, text="Detail", command=self.update_transaksi, fg="white", bg="#2196F3", width=8)
+        self.btn_update.pack(pady=(6, 4), padx=5)
 
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kd_transaksi", "kd_penyewa", "kd_unit", "tanggal_mulai", "tanggal_selesai",
-                   "tanggal_transaksi", "total_harga", "status_transaksi")
+        columns = ("kd_transaksi", "kd_penyewa", "kd_unit",
+                   "tanggal_transaksi", "status_transaksi")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        headers = ["Kode Transaksi", "Penyewa", "Kode Unit", "Tanggal Mulai", "Tanggal Selesai",
-                   "Tanggal Transaksi", "Total Harga", "Status"]
+        headers = ["Kode Transaksi", "Penyewa", "Kode Unit",
+                   "Tanggal Transaksi", "Status"]
         for col, header in zip(columns, headers):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
@@ -210,12 +224,53 @@ class TransaksiApp(tk.Frame):
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.generate_kode_otomatis()
+        self.update_jumlah_bayar_otomatis()
         self.load_data()
+
+    def hanya_angka(self, value_if_allowed):
+        if value_if_allowed == "":
+            return True  # Boleh kosong
+        try:
+            float(value_if_allowed)
+            return True
+        except ValueError:
+            return False
 
     def kembali_ke_transaksi_bulanan(self):
         self.destroy()
         if self.kembali_callback:
             self.kembali_callback()
+
+    def update_jumlah_bayar_otomatis(self, event=None):
+        def safe_float(value):
+            try:
+                return float(value.strip()) if value.strip() != "" else 0.0
+            except (ValueError, AttributeError):
+                return 0.0
+
+        total = safe_float(self.entries["total_harga"].get())
+        diskon = safe_float(self.entries["diskon"].get())
+        tambahan = safe_float(self.entries["biaya_tambahan"].get())
+        uang_penyewa = safe_float(self.entries["uang_penyewa"].get())
+
+        jumlah_bayar = total + tambahan - diskon
+        kembalian = uang_penyewa - jumlah_bayar
+
+        # Format angka ala Indonesia: 750.000
+        def format_idr(number):
+            return f"{int(number):,}".replace(",", ".")
+
+        # Update jumlah_bayar
+        self.entries["jumlah_bayar"].config(state="normal")
+        self.entries["jumlah_bayar"].delete(0, "end")
+        self.entries["jumlah_bayar"].insert(0, format_idr(jumlah_bayar))
+        self.entries["jumlah_bayar"].config(state="readonly")
+
+        # Update kembalian
+        self.entries["kembalian"].config(state="normal")
+        self.entries["kembalian"].delete(0, "end")
+        self.entries["kembalian"].insert(0, format_idr(kembalian))
+        self.entries["kembalian"].config(state="readonly")
 
     def show_transaksi_detail(self, data):
         self.clear_container()
@@ -253,6 +308,7 @@ class TransaksiApp(tk.Frame):
             else:
                 self.entries["kode_unit"].set("")
                 self.entries["total_harga"].delete(0, tk.END)
+        self.update_jumlah_bayar_otomatis()
 
     def refresh_penyewa_combobox(self):
         penyewa_data = self.controller.fetch_penyewa_belum_transaksi(self.kd_transaksi_bulanan)
@@ -277,14 +333,15 @@ class TransaksiApp(tk.Frame):
                 self.entries['total_harga'].config(state='readonly')
             else:
                 messagebox.showwarning("Tidak Ada Harga", f"Harga untuk unit {kd_unit} tidak ditemukan.")
+        self.update_jumlah_bayar_otomatis()
 
     def load_data(self):
         self.tree.delete(*self.tree.get_children())
         transaksi_list = self.controller.fetch_transaksi_bulanan(self.kd_transaksi_bulanan) if self.kd_transaksi_bulanan else self.controller.fetch_transaksi()
         for t in transaksi_list:
             self.tree.insert('', 'end', values=(
-                t.kd_transaksi, t.kd_penyewa, t.kd_unit, t.tanggal_mulai,
-                t.tanggal_selesai, t.tanggal_transaksi, t.total_harga, t.status_transaksi
+                t.kd_transaksi, t.kd_penyewa, t.kd_unit,
+                t.tanggal_transaksi, t.status_transaksi
             ))
 
     def tambah_transaksi(self):
@@ -294,34 +351,41 @@ class TransaksiApp(tk.Frame):
                 data[key] = entry.get()
             except AttributeError:
                 data[key] = entry.get_date().strftime('%Y-%m-%d')
+
         if data["penyewa"] == "Pilih penyewa" or data["kode_unit"] == "Pilih kode unit":
             messagebox.showwarning("Input tidak lengkap", "Pilih penyewa dan kode unit.")
             return
 
         tgl_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
         tgl_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
-        if tgl_mulai > tgl_selesai:
-            messagebox.showwarning("Tanggal Salah", "Tanggal mulai harus lebih awal dari tanggal selesai.")
+        if tgl_mulai >= tgl_selesai:
+            messagebox.showwarning("Tanggal Salah", "Tanggal selesai harus setelah tanggal mulai.")
             return
 
-        transaksi = Transaksi(
-            kd_transaksi=data["kode_transaksi"],
-            kd_transaksi_bulanan=self.kd_transaksi_bulanan,
-            kd_penyewa=self.nama_to_kode_penyewa.get(data["penyewa"]),
-            kd_unit=data["kode_unit"],
-            tanggal_mulai=data["tanggal_mulai"],
-            tanggal_selesai=data["tanggal_selesai"],
-            tanggal_transaksi=data["tanggal_transaksi"],
-            total_harga=data["total_harga"],
-            status_transaksi=data["status_transaksi"]
-        )
-
         try:
+            transaksi = Transaksi(
+                kd_transaksi=data["kode_transaksi"],
+                kd_transaksi_bulanan=self.kd_transaksi_bulanan,
+                kd_penyewa=self.nama_to_kode_penyewa.get(data["penyewa"]),
+                kd_unit=data["kode_unit"],
+                tanggal_mulai=data["tanggal_mulai"],
+                tanggal_selesai=data["tanggal_selesai"],
+                tanggal_transaksi=data["tanggal_transaksi"],
+                total_harga=self.bersihkan_angka(data["total_harga"]),
+                status_transaksi=data["status_transaksi"],
+                diskon=self.bersihkan_angka(data["diskon"]),
+                biaya_tambahan=self.bersihkan_angka(data["biaya_tambahan"]),
+                jumlah_bayar=self.bersihkan_angka(data["jumlah_bayar"]),
+                uang_penyewa=self.bersihkan_angka(data["uang_penyewa"]),
+                kembalian=self.bersihkan_angka(data["kembalian"])
+            )
+
             self.controller.tambah_transaksi(transaksi)
             messagebox.showinfo("Sukses", "Transaksi berhasil ditambahkan.")
             self.clear_form()
             self.load_data()
             self.refresh_penyewa_combobox()
+
         except Exception as e:
             messagebox.showerror("Error", f"Gagal menambahkan transaksi: {e}")
 
@@ -378,32 +442,46 @@ class TransaksiApp(tk.Frame):
             if isinstance(ent, ttk.Combobox):
                 ent.config(state='readonly')
                 ent.current(0)
-            else:
+            elif isinstance(ent, DateEntry):
+                ent.set_date(datetime.date.today())
+            elif isinstance(ent, tk.Entry) or isinstance(ent, tk.Text):
                 ent.config(state='normal')
                 ent.delete(0, 'end')
+                if key in ["diskon", "biaya_tambahan", "kembalian"]:
+                    ent.insert(0, "0")
+                elif key in ["jumlah_bayar", "kembalian"]:
+                    ent.insert(0, "0")
+                    ent.config(state="readonly")
+            elif isinstance(ent, tk.StringVar):
+                if key == "status_transaksi":
+                    ent.set("lunas")  # kembalikan ke default 'lunas'
+                else:
+                    ent.set("")
+            else:
+                pass  # ignore jenis yang tidak dikenal
 
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
-        self.entries['kode_unit'].config(state='readonly')
-        self.entries['kode_unit'].set("Pilih kode unit")
-        unit_kosong = self.controller.fetch_kode_unit_kosong()
-        self.entries['kode_unit']['values'] = ["Pilih kode unit"] + unit_kosong
-        self.entries['kode_unit'].set("Pilih kode unit")
-        if isinstance(ent, ttk.Combobox):
-            ent.config(state='readonly')
-            ent.current(0)
-        elif isinstance(ent, DateEntry):
-            ent.set_date(datetime.date.today())
-        else:
-            ent.config(state='normal')
-            ent.delete(0, 'end')
+
+        if isinstance(self.entries['kode_unit'], ttk.Combobox):
+            self.entries['kode_unit'].config(state='readonly')
+            self.entries['kode_unit'].set("Pilih kode unit")
+            unit_kosong = self.controller.fetch_kode_unit_kosong()
+            self.entries['kode_unit']['values'] = ["Pilih kode unit"] + unit_kosong
+            self.entries['kode_unit'].set("Pilih kode unit")
+
+    def bersihkan_angka(self, str_angka):
+        try:
+            return int(str_angka.replace('.', '').strip()) if str_angka else 0
+        except ValueError:
+            return 0
 
     def on_tree_select(self, event):
         selected = self.tree.focus()
         if selected:
             values = self.tree.item(selected, 'values')
-            keys = ["kode_transaksi", "penyewa", "kode_unit", "tanggal_mulai", "tanggal_selesai",
-                    "tanggal_transaksi", "total_harga", "status_transaksi"]
+            keys = ["kode_transaksi", "penyewa", "kode_unit",
+                    "tanggal_transaksi", "tanggal_mulai", "tanggal_selesai", "status_transaksi"]
             for k, v in zip(keys, values):
                 self.entries[k].config(state='normal')
                 self.entries[k].delete(0, 'end')

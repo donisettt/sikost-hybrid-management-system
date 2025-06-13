@@ -113,8 +113,7 @@ class TransaksiController:
     def fetch_transaksi(self):
         query = """
             SELECT tr.kd_transaksi, tr.kd_transaksi_bulanan, p.nama AS kd_penyewa, uk.kd_unit,
-                   tr.tanggal_mulai, tr.tanggal_selesai, tr.tanggal_transaksi,
-                   tr.total_harga, tr.status_transaksi
+            tr.tanggal_transaksi, tr.status_transaksi
             FROM transaksi tr
             JOIN penyewa p ON tr.kd_penyewa = p.kd_penyewa
             JOIN unit_kamar uk ON tr.kd_unit = uk.kd_unit
@@ -143,8 +142,9 @@ class TransaksiController:
             INSERT INTO transaksi (
                 kd_transaksi, kd_transaksi_bulanan, kd_penyewa, kd_unit,
                 tanggal_mulai, tanggal_selesai, tanggal_transaksi,
-                total_harga, status_transaksi
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                total_harga, status_transaksi, diskon, biaya_tambahan, jumlah_bayar, uang_penyewa,
+                kembalian
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         params = (
             transaksi.kd_transaksi,
@@ -155,7 +155,12 @@ class TransaksiController:
             transaksi.tanggal_selesai,
             transaksi.tanggal_transaksi,
             transaksi.total_harga,
-            transaksi.status_transaksi
+            transaksi.status_transaksi,
+            transaksi.diskon,
+            transaksi.biaya_tambahan,
+            transaksi.jumlah_bayar,
+            transaksi.uang_penyewa,
+            transaksi.kembalian
         )
         self.db.execute(query, params)
         self.db.commit()
@@ -177,7 +182,8 @@ class TransaksiController:
             UPDATE transaksi
             SET kd_transaksi_bulanan = %s, kd_penyewa = %s, kd_unit = %s,
                 tanggal_mulai = %s, tanggal_selesai = %s, tanggal_transaksi = %s,
-                total_harga = %s, status_transaksi = %s
+                total_harga = %s, status_transaksi = %s, diskon = %s, biaya_tambahan = %s,
+                jumlah_bayar = %s, uang_penyewa = %s, kembalian = %s
             WHERE kd_transaksi = %s
         """
         params = (
@@ -189,6 +195,11 @@ class TransaksiController:
             transaksi.tanggal_transaksi,
             transaksi.total_harga,
             transaksi.status_transaksi,
+            transaksi.diskon,
+            transaksi.biaya_tambahan,
+            transaksi.jumlah_bayar,
+            transaksi.uang_penyewa,
+            transaksi.kembalian,
             transaksi.kd_transaksi
         )
         self.db.execute(query, params)
@@ -253,8 +264,10 @@ class TransaksiController:
     def fetch_transaksi_bulanan(self, kd_transaksi_bulanan):
         query = """
             SELECT tr.kd_transaksi, tr.kd_transaksi_bulanan, p.nama AS kd_penyewa, uk.kd_unit,
-                   tr.tanggal_mulai, tr.tanggal_selesai, tr.tanggal_transaksi,
-                   tr.total_harga, tr.status_transaksi
+               tr.tanggal_mulai, tr.tanggal_selesai, tr.tanggal_transaksi,
+               tr.total_harga, tr.status_transaksi,
+               tr.diskon, tr.biaya_tambahan, tr.jumlah_bayar,
+               tr.uang_penyewa, tr.kembalian
             FROM transaksi tr
             JOIN penyewa p ON tr.kd_penyewa = p.kd_penyewa
             JOIN unit_kamar uk ON tr.kd_unit = uk.kd_unit
@@ -274,7 +287,12 @@ class TransaksiController:
                 tanggal_selesai=row["tanggal_selesai"],
                 tanggal_transaksi=row["tanggal_transaksi"],
                 total_harga=row["total_harga"],
-                status_transaksi=row["status_transaksi"]
+                status_transaksi=row["status_transaksi"],
+                diskon=row["diskon"],
+                biaya_tambahan=row["biaya_tambahan"],
+                jumlah_bayar=row["jumlah_bayar"],
+                uang_penyewa=row["uang_penyewa"],
+                kembalian=row["kembalian"]
             )
             transaksi_list.append(transaksi)
         return transaksi_list

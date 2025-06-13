@@ -26,7 +26,7 @@ class TransaksiBulananApp(tk.Frame):
 
         self.btn_tambah = tk.Button(
             self.header_frame,
-            text="Tambah Transaksi",
+            text="+ Tambah Transaksi",
             bg="#2ecc71",
             fg="white",
             font=("Segoe UI", 10, "bold"),
@@ -69,7 +69,8 @@ class TransaksiBulananApp(tk.Frame):
             text="Buat",
             command=self.buat_transaksi_bulanan,
             bg="#2980b9",
-            fg="white"
+            fg="white",
+            width=8
         )
         btn_buat.grid(row=0, column=4, padx=10)
 
