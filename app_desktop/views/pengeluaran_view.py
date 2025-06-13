@@ -53,17 +53,28 @@ class PengeluaranApp(tk.Frame):
 
         for i, label_text in enumerate(labels):
             label = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, anchor="w")
-            label.grid(row=i, column=0, sticky="w", pady=5)
+            label.grid(row=i, column=0, sticky="w", pady=7, padx=10)
 
             if label_text == "Tanggal":
-                entry = DateEntry(frame_input, date_pattern="yyyy-mm-dd")
+                entry = DateEntry(frame_input, date_pattern="yyyy-mm-dd", state="readonly")
             elif label_text == "Kategori":
                 entry = ttk.Combobox(frame_input, values=kategori_display, state="readonly")
                 entry.set("Pilih Kategori")
             elif label_text == "Bukti":
-                entry = tk.Label(frame_input, text="Belum ada file", bg=self.entry_bg)
-                btn_upload = tk.Button(frame_input, text="Pilih File", command=self.upload_file)
-                btn_upload.grid(row=i, column=2, padx=10)
+                bukti_frame = tk.Frame(frame_input, bg=self.entry_bg)
+
+                entry = tk.Label(bukti_frame, text="Belum ada file", bg=self.entry_bg)
+                entry.pack(side="left", padx=(0, 10))
+
+                btn_upload = tk.Button(bukti_frame, text="Pilih File", command=self.upload_file)
+                btn_upload.pack(side="left")
+
+                bukti_frame.grid(row=i, column=1, sticky="w", pady=5)
+
+                # Simpan entry label untuk "bukti"
+                self.entries[label_text.lower().replace(" ", "_")] = entry
+
+                continue  # <--- INI penting! Supaya gak lewat ke .grid lagi
             else:
                 entry = tk.Entry(frame_input)
 
