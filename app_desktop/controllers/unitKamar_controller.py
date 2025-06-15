@@ -91,15 +91,19 @@ class UnitKamarController:
             raise
 
     def hapus_unitKamar(self, kd_unit):
-        query = "DELETE FROM unit_kamar WHERE kd_unit = %s"
-        params = (kd_unit,)
         try:
-            self.db.execute(query, params)
+            query_update_penyewa = "UPDATE penyewa SET kd_unit = NULL WHERE kd_unit = %s"
+            self.db.execute(query_update_penyewa, (kd_unit,))
+
+            query_delete_unit = "DELETE FROM unit_kamar WHERE kd_unit = %s"
+            self.db.execute(query_delete_unit, (kd_unit,))
+
             self.db.commit()
-            logging.info(f"Deleted unit kamar with kd_unit={kd_unit}")
+            logging.info(f"Unit kamar {kd_unit} berhasil dihapus dan kd_unit di tabel penyewa di-set NULL")
+
         except Exception as e:
             self.db.rollback()
-            logging.error(f"Error deleting unit kamar: {e}")
+            logging.error(f"Gagal hapus unit kamar {kd_unit}: {e}")
             raise
 
     def cari_unitKamar(self, keyword):

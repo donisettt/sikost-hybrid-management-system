@@ -74,7 +74,7 @@ class PengeluaranApp(tk.Frame):
                 # Simpan entry label untuk "bukti"
                 self.entries[label_text.lower().replace(" ", "_")] = entry
 
-                continue  # <--- INI penting! Supaya gak lewat ke .grid lagi
+                continue
             else:
                 entry = tk.Entry(frame_input)
 
@@ -85,15 +85,31 @@ class PengeluaranApp(tk.Frame):
 
         # === BUTTONS ===
         frame_btn = tk.Frame(self, bg=self.bg_color)
-        frame_btn.pack(pady=(0, 10))
+        frame_btn.pack(fill="x", pady=(0, 10), padx=(0, 17))
 
-        self.btn_add = tk.Button(frame_btn, text="Tambah", bg=self.button_bg, fg="white", font=("Segoe UI", 10, "bold"), command=self.tambah_pengeluaran)
-        self.btn_update = tk.Button(frame_btn, text="Update", bg=self.button_bg, fg="white", font=("Segoe UI", 10, "bold"), command=self.update_pengeluaran)
-        self.btn_clear = tk.Button(frame_btn, text="Clear", bg=self.button_bg, fg="white", font=("Segoe UI", 10, "bold"), command=self.clear_form)
+        frame_btn.grid_columnconfigure(0, weight=1)
 
-        self.btn_add.grid(row=0, column=0, padx=10)
-        self.btn_update.grid(row=0, column=1, padx=10)
-        self.btn_clear.grid(row=0, column=2, padx=10)
+        self.btn_add = tk.Button(
+            frame_btn, text="Tambah", bg="#27ae60", fg="white", activebackground="#2ecc71",
+            font=("Segoe UI", 10, "bold"), command=self.tambah_pengeluaran
+        )
+        self.btn_update = tk.Button(
+            frame_btn, text="Update", bg="#2980b9", fg="white", activebackground="#3498db",
+            font=("Segoe UI", 10, "bold"), command=self.update_pengeluaran
+        )
+        self.btn_hapus = tk.Button(
+            frame_btn, text="Hapus", bg="#e74c3c", fg="white", activebackground="#3498db",
+            font=("Segoe UI", 10, "bold"), command=self.hapus_pengeluaran
+        )
+        self.btn_clear = tk.Button(
+            frame_btn, text="Clear", bg="#7f8c8d", fg="white", activebackground="#95a5a6",
+            font=("Segoe UI", 10, "bold"), command=self.clear_form
+        )
+
+        self.btn_add.grid(row=0, column=1, padx=5)
+        self.btn_update.grid(row=0, column=2, padx=5)
+        self.btn_hapus.grid(row=0, column=3, padx=5)
+        self.btn_clear.grid(row=0, column=4, padx=5)
 
         # === TABLE ===
         self.tree = ttk.Treeview(self, columns=("kd", "tgl", "kategori", "desc", "jumlah", "by", "bukti"), show='headings')
@@ -196,6 +212,30 @@ class PengeluaranApp(tk.Frame):
         self.load_data()
         self.clear_form()
 
+    def hapus_pengeluaran(self):
+        kd = self.entries['kode_pengeluaran'].get().strip()
+        kategori = self.entries['kategori'].get().strip()
+        if not kd:
+            messagebox.showwarning("Peringatan", "Pilih pengeluaran yang akan dihapus!")
+            return
+
+        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus pengeluaran {kategori}?")
+        if confirm:
+            # === Hapus gambar jika ada ===
+            bukti_path = self.entries['bukti'].cget("text")
+            if os.path.exists(bukti_path) and os.path.isfile(bukti_path):
+                try:
+                    os.remove(bukti_path)
+                    print(f"Bukti gambar {bukti_path} berhasil dihapus.")
+                except Exception as e:
+                    print(f"Gagal menghapus file bukti: {e}")
+
+            # === Hapus dari database ===
+            self.controller.hapus_pengeluaran(kd)
+            messagebox.showinfo("Sukses", f"Pengeluaran {kategori} berhasil dihapus.")
+            self.load_data()
+            self.clear_form()
+
     def load_data(self):
         for i in self.tree.get_children():
             self.tree.delete(i)
@@ -243,16 +283,16 @@ class PengeluaranApp(tk.Frame):
 
     def clear_form(self):
         self.entries['kode_pengeluaran'].config(state='normal')
+
         for key, ent in self.entries.items():
             if isinstance(ent, (ttk.Entry, tk.Entry, DateEntry)):
                 ent.delete(0, 'end')
             elif isinstance(ent, ttk.Combobox):
                 ent.set("Pilih Kategori")
             elif isinstance(ent, tk.Label) and key == 'bukti':
-                ent.config(text="Belum ada file")
-            elif isinstance(ent, tk.Label):
                 ent.config(text="Belum ada file", image='')
-                ent.image = None
+                ent.image = None  # Reset referensi gambar
+
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
         self.entries['kode_pengeluaran'].config(state='disabled')

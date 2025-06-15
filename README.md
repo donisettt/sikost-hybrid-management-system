@@ -1,4 +1,4 @@
-## Project Sistem Informasi Kost (SIKOST) Berbasis Desktop
+## Project Sistem Informasi Kost (SIKOST) Berbasis Hybrid Desktop-Web
 
 Sistem Informasi Kost (SIKOST) adalah aplikasi berbasis Python dan MySQL yang digunakan untuk mengelola data kost secara efektif dan efisien. Aplikasi ini dirancang untuk membantu pengelola kost dalam melakukan pencatatan data kamar, penyewa, transaksi, dan laporan dengan mudah.
 

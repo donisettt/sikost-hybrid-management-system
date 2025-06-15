@@ -61,8 +61,7 @@ class TransaksiApp(tk.Frame):
         judul = tk.Label(header_bar, text=f"Transaksi{bulan_label}", font=("Segoe UI", 16, "bold"), bg=self.bg_color, fg=self.fg_color)
         judul.pack(side="top", pady=(5, 5))
 
-        frame_input = tk.LabelFrame(self, text="Form Transaksi", font=("Segoe UI", 12, "bold"),
-                                    bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
+        frame_input = tk.LabelFrame(self, text="Form Transaksi", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
         labels = ["Kode Transaksi", "Penyewa", "Kode Unit", "Tanggal Transaksi", "Tanggal Mulai",
@@ -338,9 +337,20 @@ class TransaksiApp(tk.Frame):
         data = {}
         for key, entry in self.entries.items():
             try:
-                data[key] = entry.get()
-            except AttributeError:
-                data[key] = entry.get_date().strftime('%Y-%m-%d')
+                if isinstance(entry, (tk.Entry, ttk.Combobox)):
+                    data[key] = entry.get()
+                elif isinstance(entry, DateEntry):
+                    data[key] = entry.get_date().strftime('%Y-%m-%d')
+                elif isinstance(entry, dict) and "var" in entry:
+                    # Spesial buat status_transaksi (radio button)
+                    data[key] = entry["var"].get()
+                elif isinstance(entry, tk.StringVar):
+                    data[key] = entry.get()
+                else:
+                    data[key] = str(entry)  # fallback darurat
+            except Exception as e:
+                messagebox.showerror("Error", f"Terjadi kesalahan saat mengambil data input: {e}")
+                return
 
         if data["penyewa"] == "Pilih penyewa" or data["kode_unit"] == "Pilih kode unit":
             messagebox.showwarning("Input tidak lengkap", "Pilih penyewa dan kode unit.")

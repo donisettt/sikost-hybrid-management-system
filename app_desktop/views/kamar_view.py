@@ -46,20 +46,28 @@ class KamarApp(tk.Frame):
         self.entries = {}
 
         for i, label_text in enumerate(labels):
-            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
+            lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10),
+                           bg=self.entry_bg, fg=self.fg_color)
             lbl.grid(row=i, column=0, sticky="w", pady=6)
 
-            ent_kwargs = {"width": 40}
             key = label_text.lower().replace(" ", "_")
-            if key in ["jumlah_kamar", "maksimal_penghuni", "harga"]:
-                ent_kwargs.update({
-                    "validate": "key",
-                    "validatecommand": self.validasi_angka
-                })
 
-            ent = ttk.Entry(frame_input, **ent_kwargs)
-            ent.grid(row=i, column=1, pady=6, padx=(5, 0))
-            self.entries[key] = ent
+            if key == "tipe":
+                combo = ttk.Combobox(frame_input, values=["ekonomi", "standar", "eksklusif"], state="readonly", width=38)
+                combo.set("Pilih Tipe Kamar")
+                combo.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[key] = combo
+            else:
+                ent_kwargs = {"width": 40}
+                if key in ["jumlah_kamar", "maksimal_penghuni", "harga"]:
+                    ent_kwargs.update({
+                        "validate": "key",
+                        "validatecommand": self.validasi_angka
+                    })
+
+                ent = ttk.Entry(frame_input, **ent_kwargs)
+                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                self.entries[key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
@@ -175,7 +183,10 @@ class KamarApp(tk.Frame):
     def update_kamar(self):
         kd = self.entries['kode_kamar'].get().strip()
         nama = self.entries['nama_kamar'].get().strip()
-        tipe = self.entries['tipe'].get().strip()
+        tipe = self.entries["tipe"].get().strip()
+        if tipe == "Pilih Tipe Kamar" or tipe == "":
+            messagebox.showwarning("Peringatan", "Silakan pilih tipe kamar yang valid.")
+            return
         jumlah_kamar = self.entries['jumlah_kamar'].get().strip()
         kuota = self.entries['maksimal_penghuni'].get().strip()
         harga = self.entries['harga'].get().strip()
@@ -213,6 +224,11 @@ class KamarApp(tk.Frame):
         self.entries['kode_kamar'].config(state='normal')
         for ent in self.entries.values():
             ent.delete(0, 'end')
+        for key, entry in self.entries.items():
+            if isinstance(entry, ttk.Combobox):
+                entry.set("Pilih Tipe Kamar")  # reset combobox ke default
+            else:
+                entry.delete(0, tk.END)
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
 
@@ -228,8 +244,7 @@ class KamarApp(tk.Frame):
             self.entries['nama_kamar'].delete(0, 'end')
             self.entries['nama_kamar'].insert(0, values[1])
 
-            self.entries['tipe'].delete(0, 'end')
-            self.entries['tipe'].insert(0, values[2])
+            self.entries['tipe'].set(values[2])
 
             self.entries['jumlah_kamar'].delete(0, 'end')
             self.entries['jumlah_kamar'].insert(0, values[3])
