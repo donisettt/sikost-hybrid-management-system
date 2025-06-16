@@ -78,7 +78,7 @@ class PenyewaApp(tk.Frame):
                 self.entries[key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
-        frame_buttons.grid(row=0, column=2, rowspan=5, padx=15)
+        frame_buttons.grid(row=0, column=2, rowspan=5, padx=15, pady=(0, 32))
 
         self.btn_add = tk.Button(frame_buttons, text="Tambah", command=self.tambah_penyewa, fg="white", bg="#4CAF50")
         self.btn_update = tk.Button(frame_buttons, text="Update", command=self.update_penyewa, fg="white", bg="#2196F3")

@@ -14,6 +14,7 @@ from app_desktop.views.transaksi_view import TransaksiApp
 from app_desktop.views.pengeluaran_view import PengeluaranApp
 from app_desktop.views.detail_transaksi_view import DetailTransaksiApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
+from app_desktop.controllers.detail_transaksi_controller import DetailTransaksiController
 
 class HoverButton(tk.Button):
     def __init__(self, master=None, icon=None, **kw):
@@ -201,12 +202,13 @@ class DashboardApp(tk.Frame):
 
     def show_transaksi_view(self):
         self.clear_container()
+        transaksi_bulanan = TransaksiBulananController()
         transaksi_view_frame = TransaksiApp(
             self.container,
             kembali_callback=self.show_transaksi  # <-- callback ke transaksi bulanan
         )
         transaksi_view_frame.pack(fill="both", expand=True)
-        self.current_frame = transaksi_view_frame
+        self.current_frame = transaksi_bulanan
 
     def show_pengeluaran(self):
         self.clear_container()
@@ -215,8 +217,11 @@ class DashboardApp(tk.Frame):
         self.current_frame = pengeluaran_frame
 
     def show_detail_transaksi(self):
-        self.clear_container()
-        detail_frame = DetailTransaksiApp(self.container)
+        for widget in self.container.winfo_children():
+            widget.destroy()
+
+        controller = DetailTransaksiController()
+        detail_frame = DetailTransaksiApp(self.container, controller)
         detail_frame.pack(fill="both", expand=True)
         self.current_frame = detail_frame
 

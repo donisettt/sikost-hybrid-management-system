@@ -436,6 +436,7 @@ class TransaksiApp(tk.Frame):
                 messagebox.showerror("Error", f"Gagal menghapus transaksi: {e}")
 
     def clear_form(self):
+        self.refresh_penyewa_combobox()
         self.entries['kode_transaksi'].config(state='normal')
 
         for key, ent in self.entries.items():

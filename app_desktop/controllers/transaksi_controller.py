@@ -148,44 +148,85 @@ class TransaksiController:
         return transaksi_list
 
     def tambah_transaksi(self, transaksi: Transaksi):
-        query = """
-            INSERT INTO transaksi (
-                kd_transaksi, kd_transaksi_bulanan, kd_penyewa, kd_unit,
-                tanggal_mulai, tanggal_selesai, tanggal_transaksi,
-                total_harga, status_transaksi, diskon, biaya_tambahan, jumlah_bayar, uang_penyewa,
-                kembalian
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """
-        params = (
-            transaksi.kd_transaksi,
-            transaksi.kd_transaksi_bulanan,
-            transaksi.kd_penyewa,
-            transaksi.kd_unit,
-            transaksi.tanggal_mulai,
-            transaksi.tanggal_selesai,
-            transaksi.tanggal_transaksi,
-            transaksi.total_harga,
-            transaksi.status_transaksi,
-            transaksi.diskon,
-            transaksi.biaya_tambahan,
-            transaksi.jumlah_bayar,
-            transaksi.uang_penyewa,
-            transaksi.kembalian
-        )
-        self.db.execute(query, params)
-        self.db.commit()
+        try:
+            if transaksi.tanggal_mulai == transaksi.tanggal_selesai:
+                from tkinter import messagebox
+                messagebox.showwarning("Validasi Tanggal", "Tanggal mulai dan tanggal selesai tidak boleh sama.")
+                return
 
-        query_update_status = """
-            UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s
-        """
-        self.db.execute(query_update_status, (transaksi.kd_unit,))
-        self.db.commit()
+            # 1. Simpan ke tabel transaksi
+            query_transaksi = """
+                INSERT INTO transaksi (
+                    kd_transaksi, kd_transaksi_bulanan, kd_penyewa, kd_unit,
+                    tanggal_mulai, tanggal_selesai, tanggal_transaksi,
+                    total_harga, status_transaksi, diskon, biaya_tambahan,
+                    jumlah_bayar, uang_penyewa, kembalian
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            params_transaksi = (
+                transaksi.kd_transaksi,
+                transaksi.kd_transaksi_bulanan,
+                transaksi.kd_penyewa,
+                transaksi.kd_unit,
+                transaksi.tanggal_mulai,
+                transaksi.tanggal_selesai,
+                transaksi.tanggal_transaksi,
+                transaksi.total_harga,
+                transaksi.status_transaksi,
+                transaksi.diskon,
+                transaksi.biaya_tambahan,
+                transaksi.jumlah_bayar,
+                transaksi.uang_penyewa,
+                transaksi.kembalian
+            )
+            self.db.execute(query_transaksi, params_transaksi)
+            self.db.commit()
 
-        query_update_penyewa_unit = """
-            UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s
-        """
-        self.db.execute(query_update_penyewa_unit, (transaksi.kd_unit, transaksi.kd_penyewa))
-        self.db.commit()
+            # 2. Update status unit dan penyewa
+            self.db.execute("UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s", (transaksi.kd_unit,))
+            self.db.commit()
+
+            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",
+                            (transaksi.kd_unit, transaksi.kd_penyewa))
+            self.db.commit()
+
+            # 3. Insert langsung ke detail_transaksi tanpa ambil nama
+            kd_detail_transaksi = self.generate_kd_detail_transaksi()
+
+            query_detail = """
+                INSERT INTO detail_transaksi (
+                    kd_detail_transaksi, kd_transaksi, kd_penyewa, kd_unit, kd_transaksi_bulanan,
+                    tanggal_transaksi, tanggal_mulai, tanggal_selesai,
+                    total_harga, diskon, biaya_tambahan, jumlah_bayar,
+                    uang_penyewa, kembalian, status_transaksi
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            params_detail = (
+                kd_detail_transaksi,
+                transaksi.kd_transaksi,
+                transaksi.kd_penyewa,
+                transaksi.kd_unit,
+                transaksi.kd_transaksi_bulanan,
+                transaksi.tanggal_transaksi,
+                transaksi.tanggal_mulai,
+                transaksi.tanggal_selesai,
+                transaksi.total_harga,
+                transaksi.diskon,
+                transaksi.biaya_tambahan,
+                transaksi.jumlah_bayar,
+                transaksi.uang_penyewa,
+                transaksi.kembalian,
+                transaksi.status_transaksi
+            )
+            self.db.execute(query_detail, params_detail)
+            self.db.commit()
+
+            print("✅ Transaksi dan detail berhasil ditambahkan.")
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print("❌ Gagal menambahkan transaksi:", str(e))
 
     def update_transaksi(self, transaksi: Transaksi):
         query = """
@@ -327,6 +368,19 @@ class TransaksiController:
         if result:
             return result["nama_bulan"], result["tahun"]
         return "Tidak Diketahui", ""
+
+    def generate_kd_detail_transaksi(self):
+        query = "SELECT kd_detail_transaksi FROM detail_transaksi ORDER BY kd_detail_transaksi DESC LIMIT 1"
+        self.db.execute(query)
+        result = self.db.fetchone()
+
+        if result:
+            last_code = result['kd_detail_transaksi'].split('-')[-1]
+            new_number = int(last_code) + 1
+        else:
+            new_number = 1
+
+        return f"DTVH-{new_number:03d}"
 
     def close_connection(self):
         self.db.close()
