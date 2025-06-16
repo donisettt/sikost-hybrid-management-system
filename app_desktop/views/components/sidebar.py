@@ -92,6 +92,9 @@ class Sidebar(tk.Frame):
             self.btn_pengeluaran = tk.Button(self.submenu_kelola_transaksi, text="📤  Pengeluaran", command=callback_dict['pengeluaran'], **btn_submenu_params)
             self.btn_pengeluaran.pack(fill="x", pady=2)
 
+            self.btn_detail_transaksi = tk.Button(self.submenu_kelola_transaksi, text="📤  Detail Transaksi", command=callback_dict['detail'], **btn_submenu_params)
+            self.btn_detail_transaksi.pack(fill="x", pady=2)
+
 
         elif role == 'petugas':
             self.btn_dashboard = HoverButton(self, icon=self.icons.get("dashboard"), text=" Dashboard", command=callback_dict['dashboard'], **btn_params)

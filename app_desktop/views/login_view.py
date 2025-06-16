@@ -38,7 +38,7 @@ class LoginFrame(ttk.Frame):
                   background=[("active", "#45a049"), ("!disabled", "#4CAF50")],
                   foreground=[("disabled", "gray")])
 
-        image_url = "C:/Users/Lutfi  Mahesa/Documents/Pi/01STTB/Tugas Kuliah/Semester 4/PBO2/Project UAS Kelompok 3/sikost-hybrid-management-system-kelompok3/app_desktop/image/logos.png"
+        image_url = "C:/Users/Lutfi  Mahesa/Documents/Pi/01STTB/Tugas Kuliah/Semester 4/PBO2/Project UAS Kelompok 3/sikost-hybrid-management-system/app_desktop/image/logos.png"
         try:
             with open(image_url, 'rb') as f:
                 raw_data = f.read()
