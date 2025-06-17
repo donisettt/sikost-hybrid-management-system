@@ -181,16 +181,11 @@ class TransaksiController:
             )
             self.db.execute(query_transaksi, params_transaksi)
             self.db.commit()
-
-            # 2. Update status unit dan penyewa
             self.db.execute("UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s", (transaksi.kd_unit,))
             self.db.commit()
 
-            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",
-                            (transaksi.kd_unit, transaksi.kd_penyewa))
+            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",(transaksi.kd_unit, transaksi.kd_penyewa))
             self.db.commit()
-
-            # 3. Insert langsung ke detail_transaksi tanpa ambil nama
             kd_detail_transaksi = self.generate_kd_detail_transaksi()
 
             query_detail = """

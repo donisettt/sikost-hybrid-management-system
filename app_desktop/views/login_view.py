@@ -4,17 +4,17 @@ from app_desktop.database.connection import Database
 from PIL import Image, ImageTk
 import io
 
-class LoginFrame(tk.Frame):  # ✅ Ganti dari ttk.Frame ke tk.Frame
+class LoginFrame(tk.Frame):
     def __init__(self, master, on_login_success):
-        super().__init__(master, bg="white")  # ✅ Tambahkan bg putih
+        super().__init__(master, bg="white")
         self.master = master
         self.on_login_success = on_login_success
         self.db = Database()
 
         self.pack_propagate(False)
-        self.config(width=600, height=400, bg="white")  # ✅ Tambahkan bg putih juga di sini
+        self.config(width=600, height=400, bg="white")
 
-        self.center_frame = tk.Frame(self, bg="white")  # ✅ Tambahkan bg putih
+        self.center_frame = tk.Frame(self, bg="white")
         self.center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.create_widgets()
@@ -23,7 +23,6 @@ class LoginFrame(tk.Frame):  # ✅ Ganti dari ttk.Frame ke tk.Frame
         style = ttk.Style()
         style.theme_use("clam")
 
-        # Atur warna latar belakang semua komponen TTK ke putih
         style.configure(".", background="white")
         style.configure("TLabel", font=("Segoe UI", 12), background="white")
         style.configure("TEntry", font=("Segoe UI", 12))
@@ -54,7 +53,6 @@ class LoginFrame(tk.Frame):  # ✅ Ganti dari ttk.Frame ke tk.Frame
             print(f"Gagal load gambar: {e}")
             self.photo = None
 
-        # ✅ Frame putih untuk kotak tengah
         self.center_frame = tk.Frame(self, bg="white", padx=30, pady=30, relief=tk.RIDGE, borderwidth=2)
         self.center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 

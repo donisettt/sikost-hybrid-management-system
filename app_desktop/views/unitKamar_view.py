@@ -64,23 +64,15 @@ class UnitKamarApp(tk.Frame):
                 entry.grid(row=i, column=1, pady=6, padx=(5, 0))
                 self.entries[key] = entry
 
-        # ========== MODIFIKASI STATUS RADIO ========== #
-        tk.Label(form, text="Status", font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=2, column=0,
-                                                                                                      sticky="w",
-                                                                                                      pady=6)
+        tk.Label(form, text="Status", font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color).grid(row=2, column=0, sticky="w", pady=6)
         self.status_var = tk.StringVar(value="kosong")
         self.status_frame = tk.Frame(form, bg=self.entry_bg)
         self.status_frame.grid(row=2, column=1, pady=6, sticky="w")
 
-        self.rb_kosong = tk.Radiobutton(self.status_frame, text="Kosong", variable=self.status_var, value="kosong",
-                                        bg=self.entry_bg, font=("Segoe UI", 10))
-        self.rb_terisi = tk.Radiobutton(self.status_frame, text="Terisi", variable=self.status_var, value="terisi",
-                                        bg=self.entry_bg, font=("Segoe UI", 10))
-
+        self.rb_kosong = tk.Radiobutton(self.status_frame, text="Kosong", variable=self.status_var, value="kosong", bg=self.entry_bg, font=("Segoe UI", 10))
+        self.rb_terisi = tk.Radiobutton(self.status_frame, text="Terisi", variable=self.status_var, value="terisi", bg=self.entry_bg, font=("Segoe UI", 10))
         self.rb_kosong.pack(side='left', padx=(0, 10))
-        # self.rb_terisi.pack()  # Belum dipanggil di awal
 
-        # ========== GAYA TOMBOL ========== #
         style = ttk.Style()
         style.theme_use("default")
 
@@ -96,7 +88,6 @@ class UnitKamarApp(tk.Frame):
         style.configure("Abu.TButton", background="#9E9E9E", foreground="white", font=("Segoe UI", 10))
         style.map("Abu.TButton", background=[("active", "#757575")])
 
-        # ========== TOMBOL CRUD ========== #
         btn_frame = tk.Frame(form, bg=self.entry_bg)
         btn_frame.grid(row=0, column=2, rowspan=3, padx=15)
         ttk.Button(btn_frame, text="Tambah", command=self.tambah_unitKamar, style="Hijau.TButton").pack(fill='x',
@@ -162,9 +153,7 @@ class UnitKamarApp(tk.Frame):
         kd_kamar = kd_kamar_full.split("|")[0].strip()
 
         try:
-            # Ambil kuota kamar dari controller
             jumlah_kamar = self.controller.get_jumlah_kamar(kd_kamar)
-            # Hitung jumlah unit kamar yang sudah ada untuk kd_kamar ini
             jumlah_unit = self.controller.count_unit_kamar(kd_kamar)
 
             if jumlah_unit >= jumlah_kamar:
@@ -228,11 +217,10 @@ class UnitKamarApp(tk.Frame):
             self.rb_terisi.pack(side='left')
             item = self.tree.item(selected[0])
             kd_unit, kd_kamar, nama_kamar, status = item['values']
-            self.entries['kode_unit'].config(state='normal')  # pastikan bisa diedit dulu
+            self.entries['kode_unit'].config(state='normal')
             self.entries['kode_unit'].delete(0, tk.END)
             self.entries['kode_unit'].insert(0, kd_unit)
-            self.entries['kode_unit'].config(state='disabled')  # lalu nonaktifkan
-            # Set combobox berdasarkan kd_kamar
+            self.entries['kode_unit'].config(state='disabled')
             kamar_list = self.entries['kode_kamar']['values']
             for kamar in kamar_list:
                 if kamar.startswith(kd_kamar):
@@ -264,23 +252,15 @@ class UnitKamarApp(tk.Frame):
             self.entries['kode_unit'].delete(0, tk.END)
             return
 
-        # ambil nama kamar dari pilihan combobox (format: "KVH-001 | Kamar Mawar")
         parts = kd_kamar_full.split("|")
         if len(parts) < 2:
             return
-        nama_kamar = parts[1].strip()  # contoh: "Kamar Mawar"
-
-        # ambil kata terakhir nama kamar untuk jadi prefix kode unit, misal "Mawar" dari "Kamar Mawar"
-        # atau kamu bisa ambil nama kamar tanpa kata "Kamar" dulu, ini contoh ambil kata terakhir:
-        nama_terakhir = nama_kamar.split()[-1].upper()  # "MAWAR"
-
-        # cari data unit kamar yang sudah ada dengan prefix nama_terakhir
+        nama_kamar = parts[1].strip()
+        nama_terakhir = nama_kamar.split()[-1].upper()
         existing_units = [uk['kd_unit'] for uk in self.data_unit_kamar if uk['kd_unit'].startswith(nama_terakhir)]
 
-        # ambil nomor urut terbesar
         nomor_terbesar = 0
         for unit in existing_units:
-            # format kode unit: NAMA-XXX, ambil angka XXX
             try:
                 nomor = int(unit.split("-")[-1])
                 if nomor > nomor_terbesar:
@@ -291,7 +271,6 @@ class UnitKamarApp(tk.Frame):
         nomor_baru = nomor_terbesar + 1
         kode_unit_baru = f"{nama_terakhir}-{nomor_baru:03d}"
 
-        # set kode unit otomatis di entry
         self.entries['kode_unit'].config(state='normal')
         self.entries['kode_unit'].delete(0, tk.END)
         self.entries['kode_unit'].insert(0, kode_unit_baru)

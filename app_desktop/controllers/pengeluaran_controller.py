@@ -102,7 +102,7 @@ class PengeluaranController:
         else:
             new_number = 1
 
-        new_code = f"PGN-{new_number:03d}"  # Format jadi VH-001, VH-010, dst
+        new_code = f"PGN-{new_number:03d}"
         return new_code
 
     def close_connection(self):

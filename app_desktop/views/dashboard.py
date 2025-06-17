@@ -49,11 +49,11 @@ class DashboardApp(tk.Frame):
 
         self.icons = {}
         self.load_icon("profile", "https://cdn-icons-png.flaticon.com/512/2922/2922510.png", (64, 64))
-        self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1828/1828859.png",(24, 24))  # Dashboard icon
-        self.load_icon("user", "https://cdn-icons-png.flaticon.com/512/847/847969.png", (24, 24))  # Kelola User
-        self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/1946/1946436.png", (24, 24))  # Kelola Kamar
-        self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/921/921347.png",(24, 24))  # Manajemen Penyewa
-        self.load_icon("transaksi", "https://cdn-icons-png.flaticon.com/512/833/833524.png",(24, 24))  # Icon transaksi, aku pilih yg kasir/ticket vibes
+        self.load_icon("dashboard", "https://cdn-icons-png.flaticon.com/512/1828/1828859.png",(24, 24))
+        self.load_icon("user", "https://cdn-icons-png.flaticon.com/512/847/847969.png", (24, 24))
+        self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/1946/1946436.png", (24, 24))
+        self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/921/921347.png",(24, 24))
+        self.load_icon("transaksi", "https://cdn-icons-png.flaticon.com/512/833/833524.png",(24, 24))
 
         # --- SIDEBAR ---
         self.sidebar = Sidebar(
@@ -121,11 +121,9 @@ class DashboardApp(tk.Frame):
         frame = tk.Frame(self.container, bg="#ecf0f1")
         frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # Title
         title_label = tk.Label(frame, text="Selamat datang di Dashboard", font=("Segoe UI", 20, "bold"), bg="#ecf0f1")
         title_label.pack(pady=(0, 20))
 
-        # Group info card
         card_group = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
         card_group.pack(fill="x", pady=(0, 20))
 
@@ -145,12 +143,10 @@ class DashboardApp(tk.Frame):
             label = tk.Label(card_group, text=anggota, font=("Segoe UI", 11), bg="white", fg="#34495e")
             label.pack(anchor="w", padx=10)
 
-        # Teknologi yang Digunakan card
         card_tech = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
         card_tech.pack(fill="x")
 
-        tech_title = tk.Label(card_tech, text="Teknologi yang Digunakan", font=("Segoe UI", 14, "bold"), bg="white",
-                              fg="#2c3e50")
+        tech_title = tk.Label(card_tech, text="Teknologi yang Digunakan", font=("Segoe UI", 14, "bold"), bg="white", fg="#2c3e50")
         tech_title.pack(anchor="w", pady=(0, 10), padx=7)
 
         tech_list = [
@@ -193,9 +189,7 @@ class DashboardApp(tk.Frame):
         print("Menampilkan halaman transaksi bulanan")  # debug log
         self.clear_container()
         transaksi_bulanan = TransaksiBulananController()
-
         user_role = self.user_data.get('role', 'petugas')
-
         transaksi_frame = TransaksiBulananApp(self.container, transaksi_bulanan, user_role=user_role)
         transaksi_frame.pack(fill="both", expand=True)
         self.current_frame = transaksi_frame
@@ -205,7 +199,7 @@ class DashboardApp(tk.Frame):
         transaksi_bulanan = TransaksiBulananController()
         transaksi_view_frame = TransaksiApp(
             self.container,
-            kembali_callback=self.show_transaksi  # <-- callback ke transaksi bulanan
+            kembali_callback=self.show_transaksi
         )
         transaksi_view_frame.pack(fill="both", expand=True)
         self.current_frame = transaksi_bulanan

@@ -225,6 +225,6 @@ class UserApp(tk.Frame):
                 user.kode_user,
                 user.nama,
                 user.username,
-                "●●●●●●●",
+                user.password,
                 user.role,
             ))

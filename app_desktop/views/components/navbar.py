@@ -11,18 +11,15 @@ class Navbar(tk.Frame):
 
         self.configure(bg="#5DADE2", height=50)
 
-        # LEFT (Hamburger)
         left_frame = tk.Frame(self, bg="#5DADE2")
         left_frame.pack(side="left", padx=20, pady=10)
 
         hamburger = tk.Label(left_frame, text="≡", bg="#5DADE2", fg="white", font=("Segoe UI", 16, "bold"))
         hamburger.pack(side="left", padx=(0, 10))
 
-        # RIGHT (Profile + Time)
         right_frame = tk.Frame(self, bg="#5DADE2")
         right_frame.pack(side="right", pady=10, padx=15)
 
-        # === PROFILE ICON ===
         url = "https://cdn-icons-png.flaticon.com/512/149/149071.png"  # Ganti jika mau icon lain
         response = requests.get(url)
         img_data = BytesIO(response.content)
@@ -42,7 +39,6 @@ class Navbar(tk.Frame):
         profile_btn.menu.add_command(label="Logout", command=on_logout_click)
         profile_btn.pack(side="right", padx=(0, 5))
 
-        # === TIME LABEL (DILETAKKAN DI KIRI PROFILE) ===
         self.time_label = tk.Label(right_frame, bg="#5DADE2", fg="white", font=("Segoe UI", 11, "bold"))
         self.time_label.pack(side="right", padx=(0, 10))
         self.update_time()

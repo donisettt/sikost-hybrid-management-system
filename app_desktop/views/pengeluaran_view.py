@@ -11,7 +11,6 @@ class PengeluaranApp(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # === THEME SETUP ===
         self.bg_color = "#eef5f9"
         self.fg_color = "#2d3436"
         self.entry_bg = "#ffffff"
@@ -39,11 +38,9 @@ class PengeluaranApp(tk.Frame):
                         foreground=self.header_fg,
                         font=('Segoe UI', 10, 'bold'))
 
-        # === TITLE ===
         judul = tk.Label(self, text="Manajemen Pengeluaran", font=("Segoe UI", 18, "bold"), bg=self.bg_color, fg=self.fg_color)
         judul.pack(pady=(10, 15))
 
-        # === FORM ===
         frame_input = tk.LabelFrame(self, text="Form Pengeluaran", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill="x")
 
@@ -62,18 +59,12 @@ class PengeluaranApp(tk.Frame):
                 entry.set("Pilih Kategori")
             elif label_text == "Bukti":
                 bukti_frame = tk.Frame(frame_input, bg=self.entry_bg)
-
                 entry = tk.Label(bukti_frame, text="Belum ada file", bg=self.entry_bg)
                 entry.pack(side="left", padx=(0, 10))
-
                 btn_upload = tk.Button(bukti_frame, text="Pilih File", command=self.upload_file)
                 btn_upload.pack(side="left")
-
                 bukti_frame.grid(row=i, column=1, sticky="w", pady=5)
-
-                # Simpan entry label untuk "bukti"
                 self.entries[label_text.lower().replace(" ", "_")] = entry
-
                 continue
             else:
                 entry = tk.Entry(frame_input)
@@ -83,10 +74,8 @@ class PengeluaranApp(tk.Frame):
 
         frame_input.columnconfigure(1, weight=1)
 
-        # === BUTTONS ===
         frame_btn = tk.Frame(self, bg=self.bg_color)
         frame_btn.pack(fill="x", pady=(0, 10), padx=(0, 17))
-
         frame_btn.grid_columnconfigure(0, weight=1)
 
         self.btn_add = tk.Button(
@@ -111,7 +100,6 @@ class PengeluaranApp(tk.Frame):
         self.btn_hapus.grid(row=0, column=3, padx=5)
         self.btn_clear.grid(row=0, column=4, padx=5)
 
-        # === TABLE ===
         self.tree = ttk.Treeview(self, columns=("kd", "tgl", "kategori", "desc", "jumlah", "by", "bukti"), show='headings')
         self.tree.pack(padx=20, pady=(0, 10), fill="both", expand=True)
 
@@ -121,9 +109,7 @@ class PengeluaranApp(tk.Frame):
             self.tree.column(col, width=100, anchor="center")
         self.preview_label = tk.Label(self, bg=self.bg_color)
         self.preview_label.pack(pady=5)
-
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
-
         self.generate_kode_otomatis()
         self.load_data()
 
@@ -142,24 +128,17 @@ class PengeluaranApp(tk.Frame):
             from datetime import datetime
             import uuid
 
-            # Ekstensi dan nama unik
             ext = os.path.splitext(file_path)[1]
             new_filename = f"{uuid.uuid4().hex}{ext}"
 
-            # Folder berdasarkan tanggal (opsional tapi rapi)
             date_folder = datetime.now().strftime("%Y-%m-%d")
             dest_dir = os.path.join("image", "uploads", date_folder)
             os.makedirs(dest_dir, exist_ok=True)
-
             dest_path = os.path.join(dest_dir, new_filename)
-
             try:
                 shutil.copy(file_path, dest_path)
-
-                # Simpan path relatif biar fleksibel
                 relative_path = os.path.relpath(dest_path, start="image")
                 saved_path = os.path.join("image", relative_path)
-
                 self.entries['bukti'].config(text=saved_path)
             except Exception as e:
                 messagebox.showerror("Error", f"Gagal mengupload file: {e}")
@@ -167,18 +146,15 @@ class PengeluaranApp(tk.Frame):
     def tambah_pengeluaran(self):
         data = {key: widget.get() if isinstance(widget, (tk.Entry, ttk.Combobox, DateEntry)) else widget.cget("text")
                 for key, widget in self.entries.items()}
-
         if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
             messagebox.showwarning("Peringatan", "Semua kolom wajib diisi dan kategori harus dipilih!")
             return
-
         try:
             data['jumlah'] = int(data['jumlah'])
         except ValueError:
             messagebox.showwarning("Peringatan", "Jumlah harus berupa angka!")
             return
 
-        # Rename key agar cocok dengan konstruktor
         data['kd_pengeluaran'] = data.pop('kode_pengeluaran')
         pengeluaran = Pengeluaran(**data)
         self.controller.tambah_pengeluaran(pengeluaran)
@@ -204,7 +180,6 @@ class PengeluaranApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Jumlah harus berupa angka!")
             return
 
-        # Rename key agar cocok dengan konstruktor
         data['kd_pengeluaran'] = data.pop('kode_pengeluaran')
         pengeluaran = Pengeluaran(**data)
         self.controller.update_pengeluaran(pengeluaran)
@@ -221,7 +196,6 @@ class PengeluaranApp(tk.Frame):
 
         confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus pengeluaran {kategori}?")
         if confirm:
-            # === Hapus gambar jika ada ===
             bukti_path = self.entries['bukti'].cget("text")
             if os.path.exists(bukti_path) and os.path.isfile(bukti_path):
                 try:
@@ -229,8 +203,6 @@ class PengeluaranApp(tk.Frame):
                     print(f"Bukti gambar {bukti_path} berhasil dihapus.")
                 except Exception as e:
                     print(f"Gagal menghapus file bukti: {e}")
-
-            # === Hapus dari database ===
             self.controller.hapus_pengeluaran(kd)
             messagebox.showinfo("Sukses", f"Pengeluaran {kategori} berhasil dihapus.")
             self.load_data()
@@ -267,19 +239,19 @@ class PengeluaranApp(tk.Frame):
                     widget.set(value.capitalize())
                 elif isinstance(widget, tk.Label):
                     if key == 'bukti' and value != "Belum ada file":
-                        widget.config(text="")  # Hapus teks biar ga numpuk
+                        widget.config(text="")
                         from PIL import Image, ImageTk
                         try:
                             img = Image.open(value)
-                            img.thumbnail((100, 100))  # Ukuran kecil buat form
+                            img.thumbnail((100, 100))
                             img = ImageTk.PhotoImage(img)
                             widget.config(image=img)
-                            widget.image = img  # penting! simpan referensi biar gak kehapus
+                            widget.image = img
                         except Exception as e:
                             widget.config(text="Gagal load gambar", image='', compound='center')
                     else:
                         widget.config(text=value, image='')
-                        widget.image = None  # reset gambar
+                        widget.image = None
 
     def clear_form(self):
         self.entries['kode_pengeluaran'].config(state='normal')
@@ -291,7 +263,7 @@ class PengeluaranApp(tk.Frame):
                 ent.set("Pilih Kategori")
             elif isinstance(ent, tk.Label) and key == 'bukti':
                 ent.config(text="Belum ada file", image='')
-                ent.image = None  # Reset referensi gambar
+                ent.image = None
 
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()

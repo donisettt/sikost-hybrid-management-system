@@ -134,19 +134,14 @@ class TransaksiApp(tk.Frame):
                 frame_status = tk.Frame(frame_input, bg=self.entry_bg)
                 frame_status.grid(row=row, column=col + 1, pady=6, sticky="w")
 
-                rb_lunas = tk.Radiobutton(frame_status, text="Lunas", variable=var, value="lunas",
-                                          bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
-                rb_belum = tk.Radiobutton(frame_status, text="Belum Lunas", variable=var, value="belum_lunas",
-                                          bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
-
+                rb_lunas = tk.Radiobutton(frame_status, text="Lunas", variable=var, value="lunas", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_belum = tk.Radiobutton(frame_status, text="Belum Lunas", variable=var, value="belum_lunas", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
                 rb_lunas.pack(side="left", padx=(0, 10))
                 rb_belum.pack(side="left")
-
                 self.entries[key] = {
                     "var": var,
                     "widgets": [rb_lunas, rb_belum]
                 }
-
             else:
                 if key in ["diskon", "biaya_tambahan", "uang_penyewa"]:
                     vcmd = (self.register(self.hanya_angka), "%P")
@@ -218,7 +213,7 @@ class TransaksiApp(tk.Frame):
 
     def hanya_angka(self, value_if_allowed):
         if value_if_allowed == "":
-            return True  # Boleh kosong
+            return True
         try:
             float(value_if_allowed)
             return True
@@ -245,17 +240,14 @@ class TransaksiApp(tk.Frame):
         jumlah_bayar = total + tambahan - diskon
         kembalian = uang_penyewa - jumlah_bayar
 
-        # Format angka ala Indonesia: 750.000
         def format_idr(number):
             return f"{int(number):,}".replace(",", ".")
 
-        # Update jumlah_bayar
         self.entries["jumlah_bayar"].config(state="normal")
         self.entries["jumlah_bayar"].delete(0, "end")
         self.entries["jumlah_bayar"].insert(0, format_idr(jumlah_bayar))
         self.entries["jumlah_bayar"].config(state="readonly")
 
-        # Update kembalian
         self.entries["kembalian"].config(state="normal")
         self.entries["kembalian"].delete(0, "end")
         self.entries["kembalian"].insert(0, format_idr(kembalian))
@@ -455,11 +447,11 @@ class TransaksiApp(tk.Frame):
                     ent.config(state="readonly")
             elif isinstance(ent, tk.StringVar):
                 if key == "status_transaksi":
-                    ent.set("lunas")  # kembalikan ke default 'lunas'
+                    ent.set("lunas")
                 else:
                     ent.set("")
             else:
-                pass  # ignore jenis yang tidak dikenal
+                pass
 
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
@@ -488,7 +480,6 @@ class TransaksiApp(tk.Frame):
                 if not entry:
                     continue
 
-                # Input ke setiap field form sesuai tipe-nya
                 if isinstance(entry, tk.Entry):
                     entry.config(state='normal')
                     entry.delete(0, 'end')
@@ -513,7 +504,6 @@ class TransaksiApp(tk.Frame):
                 elif isinstance(entry, tk.StringVar):
                     entry.set(v)
 
-            # Disable radio button status_transaksi
             if "status_transaksi" in self.entries:
                 for widget in self.entries["status_transaksi"]["widgets"]:
                     widget.config(state="disabled")

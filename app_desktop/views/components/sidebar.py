@@ -89,38 +89,37 @@ class Sidebar(tk.Frame):
             self.btn_transaksi = tk.Button(self.submenu_kelola_transaksi, text="💰  Transaksi Bulanan", command=callback_dict['transaksi'], **btn_submenu_params)
             self.btn_transaksi.pack(fill="x", pady=2)
 
-            self.btn_pengeluaran = tk.Button(self.submenu_kelola_transaksi, text="📤  Pengeluaran", command=callback_dict['pengeluaran'], **btn_submenu_params)
-            self.btn_pengeluaran.pack(fill="x", pady=2)
-
             self.btn_detail_transaksi = tk.Button(self.submenu_kelola_transaksi, text="📤  Detail Transaksi", command=callback_dict['detail'], **btn_submenu_params)
             self.btn_detail_transaksi.pack(fill="x", pady=2)
 
+            self.btn_pengeluaran = tk.Button(self.submenu_kelola_transaksi, text="📤  Pengeluaran", command=callback_dict['pengeluaran'], **btn_submenu_params)
+            self.btn_pengeluaran.pack(fill="x", pady=2)
 
         elif role == 'petugas':
             self.btn_dashboard = HoverButton(self, icon=self.icons.get("dashboard"), text=" Dashboard", command=callback_dict['dashboard'], **btn_params)
             self.btn_dashboard.pack(fill="x", pady=6, padx=10)
 
-            self.btn_kelola_kamar = HoverButton(self, icon=self.icons.get("kamar"), text=" Kelola Kamar ▼", command=self.toggle_kelola_kamar, **btn_params)
-            self.btn_kelola_kamar.pack(fill="x", pady=6, padx=10)
+            self.btn_penyewa = HoverButton(self, icon=self.icons.get("penyewa"), text=" Manajemen Penyewa", command=callback_dict['penyewa'], **btn_params)
+            self.btn_penyewa.pack(fill="x", pady=6, padx=10)
 
-            self.submenu_kelola_kamar = tk.Frame(self, bg="#3b4a59")
+            self.btn_kelola_transaksi = HoverButton(self, icon=self.icons.get("transaksi"), text=" Transaksi ▼", command=self.toggle_kelola_transaksi, **btn_params)
+            self.btn_kelola_transaksi.pack(fill="x", pady=6, padx=10)
+
             btn_submenu_params = {
                 "fg": "white", "bg": "#3b4a59", "relief": "flat", "anchor": "w",
                 "padx": 30, "font": ("Segoe UI", 10), "cursor": "hand2", "borderwidth": 0,
                 "activebackground": "#1abc9c", "activeforeground": "white",
             }
 
-            self.btn_kamar = tk.Button(self.submenu_kelola_kamar, text="🛏  Kamar", command=callback_dict['kamar'], **btn_submenu_params)
-            self.btn_kamar.pack(fill="x", pady=2)
+            self.submenu_kelola_transaksi = tk.Frame(self, bg="#3b4a59")
+            self.btn_transaksi = tk.Button(self.submenu_kelola_transaksi, text="💰  Transaksi Bulanan", command=callback_dict['transaksi'], **btn_submenu_params)
+            self.btn_transaksi.pack(fill="x", pady=2)
 
-            self.btn_unit_kamar = tk.Button(self.submenu_kelola_kamar, text="📦  Unit Kamar", command=callback_dict['unit_kamar'], **btn_submenu_params)
-            self.btn_unit_kamar.pack(fill="x", pady=2)
+            self.btn_detail_transaksi = tk.Button(self.submenu_kelola_transaksi, text="📤  Detail Transaksi", command=callback_dict['detail'], **btn_submenu_params)
+            self.btn_detail_transaksi.pack(fill="x", pady=2)
 
-            self.btn_penyewa = HoverButton(self, icon=self.icons.get("penyewa"), text=" Manajemen Penyewa", command=callback_dict['penyewa'], **btn_params)
-            self.btn_penyewa.pack(fill="x", pady=6, padx=10)
-
-            self.btn_transaksi = HoverButton(self, icon=self.icons.get("transaksi"), text=" Transaksi", command=callback_dict['transaksi'], **btn_params)
-            self.btn_transaksi.pack(fill="x", pady=6, padx=10)
+            self.btn_pengeluaran = tk.Button(self.submenu_kelola_transaksi, text="📤  Pengeluaran", command=callback_dict['pengeluaran'], **btn_submenu_params)
+            self.btn_pengeluaran.pack(fill="x", pady=2)
 
         else:
             info_label = tk.Label(self, text="Role tidak dikenali.\nHubungi administrator.", fg="white", bg="#34495e", font=("Segoe UI", 10, "italic"))

@@ -94,10 +94,8 @@ class UnitKamarController:
         try:
             query_update_penyewa = "UPDATE penyewa SET kd_unit = NULL WHERE kd_unit = %s"
             self.db.execute(query_update_penyewa, (kd_unit,))
-
             query_delete_unit = "DELETE FROM unit_kamar WHERE kd_unit = %s"
             self.db.execute(query_delete_unit, (kd_unit,))
-
             self.db.commit()
             logging.info(f"Unit kamar {kd_unit} berhasil dihapus dan kd_unit di tabel penyewa di-set NULL")
 

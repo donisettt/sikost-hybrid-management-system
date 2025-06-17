@@ -174,7 +174,7 @@ class DetailTransaksiApp(tk.Frame):
             "~~ TERIMA KASIH ~~"
         ]
 
-        width, height = (80 * mm, 80 * mm)
+        width, height = (75 * mm, 80 * mm)
         nama_penyewa = e['nama_penyewa'].get()
         nama_unit = e['nama_unit'].get()
         nama_penyewa_clean = re.sub(r'\W+', '_', nama_penyewa.strip())
