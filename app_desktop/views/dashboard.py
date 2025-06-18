@@ -14,6 +14,7 @@ from app_desktop.views.transaksi_view import TransaksiApp
 from app_desktop.views.pengeluaran_view import PengeluaranApp
 from app_desktop.views.detail_transaksi_view import DetailTransaksiApp
 from app_desktop.views.profile_view import ProfileApp
+from app_desktop.views.laporan_view import LaporanApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 from app_desktop.controllers.detail_transaksi_controller import DetailTransaksiController
 from app_desktop.controllers.profile_controller import ProfileController
@@ -73,6 +74,7 @@ class DashboardApp(tk.Frame):
                 'transaksi': self.show_transaksi,
                 'pengeluaran': self.show_pengeluaran,
                 'detail': self.show_detail_transaksi,
+                'laporan': self.show_laporan,
                 'profile': self.show_profile,
                 'logout': self.confirm_exit,
             }
@@ -233,6 +235,12 @@ class DashboardApp(tk.Frame):
         detail_frame = DetailTransaksiApp(self.container, controller)
         detail_frame.pack(fill="both", expand=True)
         self.current_frame = detail_frame
+
+    def show_laporan(self):
+        self.clear_container()
+        laporan_frame = LaporanApp(self.container)
+        laporan_frame.pack(fill="both", expand=True)
+        self.current_frame = laporan_frame
 
     def clear_container(self):
         if self.current_frame:

@@ -200,7 +200,7 @@ class PenyewaApp(tk.Frame):
         data_penyewa = self.controller.get_all_penyewa()
 
         if not data_penyewa:
-            messagebox.showwarning("Kosong", "Tidak ada data untuk diekspor.")
+            messagebox.showwarning("Kosong", "Tidak ada data penyewa untuk diekspor.")
             return
 
         df = pd.DataFrame(data_penyewa)
