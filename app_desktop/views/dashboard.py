@@ -128,55 +128,47 @@ class DashboardApp(tk.Frame):
         self.current_frame = profile_frame
         self.on_profile_callback()
 
-    def clear_container(self):
-        if self.current_frame:
-            self.current_frame.destroy()
-            self.current_frame = None
-
     def show_dashboard(self):
         self.clear_container()
+
         frame = tk.Frame(self.container, bg="#ecf0f1")
         frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        title_label = tk.Label(frame, text="Selamat datang di Dashboard", font=("Segoe UI", 20, "bold"), bg="#ecf0f1")
-        title_label.pack(pady=(0, 20))
+        self.current_frame = frame  # ⬅️ INI PENTING
 
-        card_group = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
-        card_group.pack(fill="x", pady=(0, 20))
+        title_label = tk.Label(frame, text="Dashboard", font=("Segoe UI", 18, "bold"), bg="#ecf0f1", anchor="w")
+        title_label.pack(anchor="w", pady=(0, 20))
 
-        group_title = tk.Label(card_group, text="Kelompok 3 - TIF SB 23", font=("Segoe UI", 14, "bold"), bg="white",
-                               fg="#2c3e50")
-        group_title.pack(anchor="w", pady=(0, 10), padx=7)
+        card_frame = tk.Frame(frame, bg="#ecf0f1")
+        card_frame.pack(fill="x", pady=(0, 30))
 
-        anggota_list = [
-            "Doni Setiawan Wahyono 23552011146 | Lead Full Stack Developer",
-            "Lutfi Mahesa Abdul K - 23552011147 | UI/UX Designer & Database Architect",
-            "Aisah Gandari Rahmah - 23552011127 | UI/UX Designer & Database Architect",
-            "Ariyan Kusharthanto - 23552011168 | Project Administrator & Research Analyst",
-            "Indri Rohmawati - 23552011128 | Project Administrator & Research Analyst",
-        ]
+        def create_card(parent, title, value, color):
+            card = tk.Frame(parent, bg="white", width=200, height=120, highlightbackground="#ccc", highlightthickness=1)
+            card.pack_propagate(False)
 
-        for anggota in anggota_list:
-            label = tk.Label(card_group, text=anggota, font=("Segoe UI", 11), bg="white", fg="#34495e")
-            label.pack(anchor="w", padx=10)
+            header = tk.Label(card, text=title, font=("Segoe UI", 10, "bold"), bg=color, fg="white")
+            header.pack(fill="x")
 
-        card_tech = tk.Frame(frame, bg="white", bd=2, relief="groove", padx=15, pady=15)
-        card_tech.pack(fill="x")
+            value_label = tk.Label(card, text=str(value), font=("Segoe UI", 20, "bold"), bg="white", fg="#2c3e50")
+            value_label.pack(expand=True)
 
-        tech_title = tk.Label(card_tech, text="Teknologi yang Digunakan", font=("Segoe UI", 14, "bold"), bg="white", fg="#2c3e50")
-        tech_title.pack(anchor="w", pady=(0, 10), padx=7)
+            return card
 
-        tech_list = [
-            "Bahasa pemrograman: Python (Tkinter)",
-            "Database: MySQL (mysql-connector)",
-            "Tools aplikasi: Laragon, PyCharm, Git, Balsamiq",
-        ]
+        # Dummy data
+        jumlah_penyewa = 20
+        jumlah_transaksi_perbulan = 20
+        total_transaksi = 20
+        total_pengeluaran = 8
 
-        for tech in tech_list:
-            label = tk.Label(card_tech, text=tech, font=("Segoe UI", 11), bg="white", fg="#34495e")
-            label.pack(anchor="w", padx=10)
+        card1 = create_card(card_frame, "Penyewa", jumlah_penyewa, "#2980b9")
+        card2 = create_card(card_frame, "Transaksi Perbulan", jumlah_transaksi_perbulan, "#e67e22")
+        card3 = create_card(card_frame, "Total Transaksi", total_transaksi, "#27ae60")
+        card4 = create_card(card_frame, "Pengeluaran", total_pengeluaran, "#27ae60")
 
-        self.current_frame = frame
+        card1.grid(row=0, column=0, padx=10)
+        card2.grid(row=0, column=1, padx=10)
+        card3.grid(row=0, column=2, padx=10)
+        card4.grid(row=0, column=3, padx=10)
 
     def show_kamar(self):
         self.clear_container()
