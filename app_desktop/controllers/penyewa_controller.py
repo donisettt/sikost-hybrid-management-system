@@ -121,6 +121,12 @@ class PenyewaController:
             penyewa_list.append(penyewa)
         return penyewa_list
 
+    def get_all_penyewa(self):
+        query = self.db.cursor
+        query.execute("SELECT kd_penyewa, nama, jenis_kelamin, no_hp, alamat, kd_unit FROM penyewa")
+        data = query.fetchall()
+        return [dict(row) for row in data]
+
     def generate_kd_penyewa(self):
         query = "SELECT kd_penyewa FROM penyewa ORDER BY kd_penyewa DESC LIMIT 1"
         self.db.execute(query)

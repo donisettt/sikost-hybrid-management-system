@@ -63,7 +63,7 @@ class UsersController:
             WHERE kode_user LIKE %s OR nama LIKE %s OR username LIKE %s OR role LIKE %s
         """
         like_keyword = f"%{keyword}%"
-        params = (like_keyword, like_keyword, like_keyword)
+        params = (like_keyword, like_keyword, like_keyword, like_keyword)
         self.db.execute(query, params)
         result = self.db.fetchall()
 
@@ -74,7 +74,7 @@ class UsersController:
                 nama=row["nama"],
                 username=row["username"],
                 password=row["password"],
-                role=row["row"]
+                role=row["role"]
             )
             users_list.append(user)
         return users_list

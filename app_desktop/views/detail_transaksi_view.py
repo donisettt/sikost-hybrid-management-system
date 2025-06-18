@@ -180,7 +180,7 @@ class DetailTransaksiApp(tk.Frame):
         nama_penyewa_clean = re.sub(r'\W+', '_', nama_penyewa.strip())
         nama_unit_clean = re.sub(r'\W+', '_', nama_unit.strip())
         tanggal_str = datetime.now().strftime("%Y%m%d")
-        filename = f"Struk_Transaksi_{tanggal_str}_{nama_penyewa_clean}_{nama_unit_clean}.pdf"
+        filename = f"Invoice_{tanggal_str}_{nama_penyewa_clean}_{nama_unit_clean}.pdf"
         pdf_path = os.path.join(tempfile.gettempdir(), filename)
 
         c = canvas.Canvas(pdf_path, pagesize=(width, height))
@@ -203,3 +203,18 @@ class DetailTransaksiApp(tk.Frame):
             os.system(f"open '{pdf_path}'")
         else:
             os.system(f"xdg-open '{pdf_path}'")
+
+    def hapus_detail_transaksi(self):
+        kd_detail = self.entries['kode_detail_transaksi'].get().strip()
+        if not kd_detail:
+            messagebox.showwarning("Peringatan", "Pilih data dulu untuk dihapus.")
+            return
+
+        if messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus transaksi {kd_detail}?"):
+            try:
+                self.controller.hapus_detail_transaksi(kd_detail)
+                messagebox.showinfo("Sukses", "Data berhasil dihapus.")
+                self.load_data()
+                self.clear_form()
+            except Exception as e:
+                messagebox.showerror("Gagal", f"Gagal hapus data.\n{e}")

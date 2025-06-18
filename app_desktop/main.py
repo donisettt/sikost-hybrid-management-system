@@ -13,8 +13,11 @@ class App:
 
     def show_main_menu(self, user_data):
         self.login_frame.pack_forget()
-        self.dashboard = DashboardApp(self.root, self.show_login, user_data)
+        self.dashboard = DashboardApp(self.root, self.show_login, user_data, self.on_profile_click)
         self.dashboard.pack(fill=tk.BOTH, expand=True)
+
+    def on_profile_click(self):
+        print("Profile diklik dari sidebar atau navbar.")
 
     def show_login(self):
         self.dashboard.pack_forget()

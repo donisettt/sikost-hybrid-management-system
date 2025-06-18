@@ -1,5 +1,8 @@
 import tkinter as tk
+import pandas as pd
+from tkinter import filedialog
 from tkinter import ttk, messagebox
+from datetime import datetime
 from app_desktop.models.penyewa import Penyewa
 from app_desktop.controllers.penyewa_controller import PenyewaController
 
@@ -71,6 +74,7 @@ class PenyewaApp(tk.Frame):
                 rb_l.pack(side="left", padx=5)
                 rb_p.pack(side="left", padx=5)
                 self.entries[key] = self.jk_var
+                self.jk_var.set("Laki-laki")
 
             else:
                 ent = ttk.Entry(frame_input, width=40)
@@ -78,16 +82,18 @@ class PenyewaApp(tk.Frame):
                 self.entries[key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
-        frame_buttons.grid(row=0, column=2, rowspan=5, padx=15, pady=(0, 32))
+        frame_buttons.grid(row=0, column=2, rowspan=5, padx=15, pady=(0, 27))
 
         self.btn_add = tk.Button(frame_buttons, text="Tambah", command=self.tambah_penyewa, fg="white", bg="#4CAF50")
         self.btn_update = tk.Button(frame_buttons, text="Update", command=self.update_penyewa, fg="white", bg="#2196F3")
         self.btn_delete = tk.Button(frame_buttons, text="Hapus", command=self.hapus_penyewa, fg="white", bg="#f44336")
+        self.btn_export = tk.Button(frame_buttons, text="Export", command=self.export_data, fg="white", bg="#FF9800")
         self.btn_clear = tk.Button(frame_buttons, text="Clear", command=self.clear_form, fg="white", bg="#9E9E9E")
 
         self.btn_add.pack(fill='x', pady=4)
         self.btn_update.pack(fill='x', pady=4)
         self.btn_delete.pack(fill='x', pady=4)
+        self.btn_export.pack(fill='x', pady=4)
         self.btn_clear.pack(fill='x', pady=4)
 
         frame_search = tk.Frame(self, bg=self.bg_color)
@@ -186,8 +192,37 @@ class PenyewaApp(tk.Frame):
         if confirm:
             self.controller.hapus_penyewa(kd)
             messagebox.showinfo("Sukses", "Data penyewa berhasil dihapus.")
+            print("Debug: Data berhasil disimpan")
             self.load_data()
             self.clear_form()
+
+    def export_data(self):
+        data_penyewa = self.controller.get_all_penyewa()
+
+        if not data_penyewa:
+            messagebox.showwarning("Kosong", "Tidak ada data untuk diekspor.")
+            return
+
+        df = pd.DataFrame(data_penyewa)
+
+        bulan_tahun = datetime.now().strftime("%B_%Y")
+        default_filename = f"data_penyewa_{bulan_tahun}.xlsx"
+
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=default_filename,
+            title="Simpan Data Penyewa"
+        )
+
+        if not file_path:
+            return
+
+        try:
+            df.to_excel(file_path, index=False)
+            messagebox.showinfo("Berhasil", f"Data berhasil diekspor ke:\n{file_path}")
+        except Exception as e:
+            messagebox.showerror("Gagal", f"Gagal mengekspor data:\n{e}")
 
     def clear_form(self):
         self.entries['kode_penyewa'].config(state='normal')

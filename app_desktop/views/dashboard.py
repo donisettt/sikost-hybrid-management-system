@@ -13,8 +13,10 @@ from app_desktop.views.transaksi_bulanan import TransaksiBulananApp
 from app_desktop.views.transaksi_view import TransaksiApp
 from app_desktop.views.pengeluaran_view import PengeluaranApp
 from app_desktop.views.detail_transaksi_view import DetailTransaksiApp
+from app_desktop.views.profile_view import ProfileApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 from app_desktop.controllers.detail_transaksi_controller import DetailTransaksiController
+from app_desktop.controllers.profile_controller import ProfileController
 
 class HoverButton(tk.Button):
     def __init__(self, master=None, icon=None, **kw):
@@ -36,10 +38,12 @@ class HoverButton(tk.Button):
         self['fg'] = self.default_fg
 
 class DashboardApp(tk.Frame):
-    def __init__(self, master, on_logout_callback, user_data):
+    def __init__(self, master, on_logout_callback, user_data, on_profile_callback):
         super().__init__(master)
         self.master = master
         self.on_logout_callback = on_logout_callback
+        self.on_profile_callback = on_profile_callback
+
         self.user_data = user_data
         self.current_frame = None
 
@@ -69,6 +73,7 @@ class DashboardApp(tk.Frame):
                 'transaksi': self.show_transaksi,
                 'pengeluaran': self.show_pengeluaran,
                 'detail': self.show_detail_transaksi,
+                'profile': self.show_profile,
                 'logout': self.confirm_exit,
             }
         )
@@ -79,6 +84,7 @@ class DashboardApp(tk.Frame):
             self,
             user_data=self.user_data,
             on_dashboard_click=self.show_dashboard,
+            on_profile_click=self.show_profile,
             on_logout_click=self.confirm_exit
         )
         self.navbar.grid(row=0, column=1, sticky="ew")
@@ -110,6 +116,15 @@ class DashboardApp(tk.Frame):
     def confirm_exit(self):
         if messagebox.askyesno("Konfirmasi Logout", "Apakah anda yakin ingin keluar?"):
             self.on_logout_callback()
+
+    def show_profile(self):
+        self.clear_container()
+        kode_user = self.user_data.get("kode_user")  # pastikan ini ada di user_data saat login
+        controller = ProfileController(kode_user)  # controller dibuat dulu
+        profile_frame = ProfileApp(self.container, controller=controller)  # lalu dikirim ke view
+        profile_frame.pack(fill="both", expand=True)
+        self.current_frame = profile_frame
+        self.on_profile_callback()
 
     def clear_container(self):
         if self.current_frame:

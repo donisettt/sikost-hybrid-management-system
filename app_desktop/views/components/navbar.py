@@ -5,7 +5,7 @@ import requests
 from io import BytesIO
 
 class Navbar(tk.Frame):
-    def __init__(self, master, user_data, on_dashboard_click, on_logout_click, on_profile_click=None, *args, **kwargs):
+    def __init__(self, master, user_data, on_dashboard_click, on_logout_click, on_profile_click, *args, **kwargs):
         super().__init__(master, *args, **kwargs)
         self.user_data = user_data
 
