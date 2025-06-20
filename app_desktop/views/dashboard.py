@@ -2,7 +2,10 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import requests
+from datetime import datetime
 from io import BytesIO
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 from app_desktop.views.kamar_view import KamarApp
 from app_desktop.views.unitKamar_view import UnitKamarApp
 from app_desktop.views.penyewa_view import PenyewaApp
@@ -18,6 +21,7 @@ from app_desktop.views.laporan_view import LaporanApp
 from app_desktop.controllers.transaksi_bulanan import TransaksiBulananController
 from app_desktop.controllers.detail_transaksi_controller import DetailTransaksiController
 from app_desktop.controllers.profile_controller import ProfileController
+from app_desktop.controllers.dashboard_controller import DashboardController
 
 class HoverButton(tk.Button):
     def __init__(self, master=None, icon=None, **kw):
@@ -133,42 +137,67 @@ class DashboardApp(tk.Frame):
 
         frame = tk.Frame(self.container, bg="#ecf0f1")
         frame.pack(fill="both", expand=True, padx=20, pady=20)
-
-        self.current_frame = frame  # ⬅️ INI PENTING
+        self.current_frame = frame
 
         title_label = tk.Label(frame, text="Dashboard", font=("Segoe UI", 18, "bold"), bg="#ecf0f1", anchor="w")
         title_label.pack(anchor="w", pady=(0, 20))
 
         card_frame = tk.Frame(frame, bg="#ecf0f1")
-        card_frame.pack(fill="x", pady=(0, 30))
+        card_frame.pack(fill="x", pady=(0, 10))
 
         def create_card(parent, title, value, color):
-            card = tk.Frame(parent, bg="white", width=200, height=120, highlightbackground="#ccc", highlightthickness=1)
+            card = tk.Frame(parent, bg="white", width=200, height=110, highlightbackground="#ccc", highlightthickness=1)
             card.pack_propagate(False)
 
             header = tk.Label(card, text=title, font=("Segoe UI", 10, "bold"), bg=color, fg="white")
             header.pack(fill="x")
 
-            value_label = tk.Label(card, text=str(value), font=("Segoe UI", 20, "bold"), bg="white", fg="#2c3e50")
+            value_label = tk.Label(card, text=str(value), font=("Segoe UI", 15, "bold"), bg="white", fg="#2c3e50")
             value_label.pack(expand=True)
 
             return card
 
-        # Dummy data
-        jumlah_penyewa = 20
-        jumlah_transaksi_perbulan = 20
-        total_transaksi = 20
-        total_pengeluaran = 8
+        def format_rupiah(angka):
+            return "Rp {:,}".format(angka).replace(",", ".")
 
-        card1 = create_card(card_frame, "Penyewa", jumlah_penyewa, "#2980b9")
-        card2 = create_card(card_frame, "Transaksi Perbulan", jumlah_transaksi_perbulan, "#e67e22")
+        # Ambil data dari controller
+        dashboard_ctrl = DashboardController()
+        jumlah_penyewa = dashboard_ctrl.get_jumlah_penyewa()
+        jumlah_transaksi_bulan_ini = dashboard_ctrl.get_jumlah_transaksi_bulan_ini()
+        total_transaksi = dashboard_ctrl.get_total_transaksi()
+        total_pengeluaran = dashboard_ctrl.get_total_pengeluaran()
+        total_pendapatan = dashboard_ctrl.get_total_pendapatan_bulan_ini()
+        belum_lunas = dashboard_ctrl.get_transaksi_belum_lunas()
+        transaksi_hari_ini = dashboard_ctrl.get_transaksi_hari_ini()
+        penyewa_teraktif = dashboard_ctrl.get_top_penyewa()
+        grafik_bulanan = dashboard_ctrl.get_tren_transaksi_perbulan(datetime.now().year)
+        pemasukan, pengeluaran = dashboard_ctrl.get_rasio_pemasukan_pengeluaran()
+        notif_jatuh_tempo = dashboard_ctrl.get_notifikasi_jatuh_tempo()
+
+        # === Card ===
+        card1 = create_card(card_frame, "Jumlah Penyewa", jumlah_penyewa, "#2980b9")
+        card2 = create_card(card_frame, "Transaksi Bulan Ini", jumlah_transaksi_bulan_ini, "#e67e22")
         card3 = create_card(card_frame, "Total Transaksi", total_transaksi, "#27ae60")
-        card4 = create_card(card_frame, "Pengeluaran", total_pengeluaran, "#27ae60")
+        card4 = create_card(card_frame, "Total Pengeluaran", format_rupiah(total_pengeluaran), "#c0392b")
 
-        card1.grid(row=0, column=0, padx=10)
-        card2.grid(row=0, column=1, padx=10)
-        card3.grid(row=0, column=2, padx=10)
-        card4.grid(row=0, column=3, padx=10)
+        card5 = create_card(card_frame, "Pendapatan Bulan Ini", format_rupiah(total_pendapatan), "#8e44ad")
+        card6 = create_card(card_frame, "Belum Lunas", belum_lunas, "#f39c12")
+        card7 = create_card(card_frame, "Hari Ini", transaksi_hari_ini, "#16a085")
+        card8 = create_card(card_frame, "Jatuh Tempo", notif_jatuh_tempo, "#d35400")
+
+        card1.grid(row=0, column=0, padx=10, pady=4)
+        card2.grid(row=0, column=1, padx=10, pady=5)
+        card3.grid(row=0, column=2, padx=10, pady=5)
+        card4.grid(row=0, column=3, padx=10, pady=5)
+        card5.grid(row=1, column=0, padx=10, pady=5)
+        card6.grid(row=1, column=1, padx=10, pady=5)
+        card7.grid(row=1, column=2, padx=10, pady=5)
+        card8.grid(row=1, column=3, padx=10, pady=5)
+
+        # === Notifikasi Reminder ===
+        if notif_jatuh_tempo > 0:
+            tk.Label(frame, text=f"Ada {notif_jatuh_tempo} transaksi yang akan jatuh tempo minggu ini!",
+                     fg="red", bg="#ecf0f1", font=("Segoe UI", 10, "italic")).pack(pady=(10, 0))
 
     def show_kamar(self):
         self.clear_container()

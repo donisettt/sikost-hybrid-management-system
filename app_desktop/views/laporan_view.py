@@ -61,7 +61,7 @@ class LaporanApp(tk.Frame):
         kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_bln_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=20)
         kategori_cb.grid(row=2, column=1, pady=5)
 
-        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_bulanan).grid(row=3, columnspan=2, pady=10)
+        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_bulanan).grid(row=3, columnspan=2, pady=10, padx=(125, 0))
 
     def _buat_form_laporan_tahunan(self, parent):
         frame = tk.LabelFrame(parent, text="Laporan Tahunan", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
@@ -75,7 +75,7 @@ class LaporanApp(tk.Frame):
         kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_thn_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=20)
         kategori_cb.grid(row=1, column=1, pady=5)
 
-        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_tahunan).grid(row=2, columnspan=2, pady=10)
+        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_tahunan).grid(row=2, columnspan=2, pady=10, padx=(125, 0))
 
     def _buat_form_laporan_periode(self, parent):
         frame = tk.LabelFrame(parent, text="Laporan Periode", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
@@ -90,10 +90,10 @@ class LaporanApp(tk.Frame):
         self.sampai_entry.grid(row=1, column=1, pady=5)
 
         ttk.Label(frame, text="Kategori:", background="white").grid(row=2, column=0, sticky="w")
-        kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_periode_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=20)
+        kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_periode_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=18)
         kategori_cb.grid(row=2, column=1, pady=5)
 
-        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_periode).grid(row=3, columnspan=2, pady=10)
+        tk.Button(frame, text="Lihat Laporan", bg="green", fg="white", command=self.lihat_laporan_periode).grid(row=3, columnspan=2, pady=10, padx=(170, 0))
 
     def _get_bulan_list(self):
         return ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
