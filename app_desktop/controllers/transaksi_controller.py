@@ -1,6 +1,7 @@
 from app_desktop.database.connection import Database
 from app_desktop.models.transaksi import Transaksi
 from datetime import datetime
+import requests
 
 class TransaksiController:
     def __init__(self):
@@ -14,6 +15,12 @@ class TransaksiController:
         result = self.db.fetchall()
         kode_units = [row["kd_unit"] for row in result]
         return kode_units
+
+    def ambil_no_hp_penyewa(self, kd_penyewa):
+        query = "SELECT no_hp FROM penyewa WHERE kd_penyewa = %s"
+        self.db.execute(query, (kd_penyewa,))
+        hasil = self.db.fetchone()
+        return hasil["no_hp"] if hasil else None
 
     def fetch_kode_unit_kosong(self):
         query = """
@@ -147,6 +154,56 @@ class TransaksiController:
             transaksi_list.append(transaksi)
         return transaksi_list
 
+    def ambil_no_hp_penyewa(self, kd_penyewa):
+        query = "SELECT no_hp FROM penyewa WHERE kd_penyewa = %s"
+        self.db.execute(query, (kd_penyewa,))
+        hasil = self.db.fetchone()
+        return hasil["no_hp"] if hasil else None
+
+    def ambil_nama_penyewa(self, kd_penyewa):
+        query = "SELECT nama FROM penyewa WHERE kd_penyewa = %s"
+        self.db.execute(query, (kd_penyewa,))
+        hasil = self.db.fetchone()
+        return hasil["nama"] if hasil else None
+
+    def kirim_wa_wablas(self, no_hp: str, pesan: str):
+        token = "FxOEioHDnpQ3liM6zjIRcNlSGSVh1dF80jCY738OrubljoZovkRProM"
+        url = "https://sby.wablas.com/api/send-message"
+
+        headers = {
+            "Authorization": token,
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "phone": no_hp,
+            "message": pesan,
+            "secret": False,
+            "priority": True
+
+        }
+
+        print("📤 Payload yang dikirim:", payload)
+        print("🔐 Headers:", headers)
+        print("🌐 URL:", url)
+
+        try:
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                print("✅ Notifikasi WA berhasil dikirim.")
+            else:
+                print("⚠️ Gagal kirim WA:", response.text)
+        except Exception as e:
+            print("❌ Error WA:", str(e))
+
+    def format_tanggal_indonesia(self, tanggal: datetime.date):
+        bulan_indo = {
+            1: "Januari", 2: "Februari", 3: "Maret", 4: "April",
+            5: "Mei", 6: "Juni", 7: "Juli", 8: "Agustus",
+            9: "September", 10: "Oktober", 11: "November", 12: "Desember"
+        }
+        return f"{tanggal.day} {bulan_indo[tanggal.month]} {tanggal.year}"
+
     def tambah_transaksi(self, transaksi: Transaksi):
         try:
             if transaksi.tanggal_mulai == transaksi.tanggal_selesai:
@@ -215,6 +272,27 @@ class TransaksiController:
             )
             self.db.execute(query_detail, params_detail)
             self.db.commit()
+
+            tanggal_mulai_dt = datetime.strptime(transaksi.tanggal_mulai, "%Y-%m-%d").date()
+            tanggal_selesai_dt = datetime.strptime(transaksi.tanggal_selesai, "%Y-%m-%d").date()
+
+            tgl_mulai_str = self.format_tanggal_indonesia(tanggal_mulai_dt)
+            tgl_selesai_str = self.format_tanggal_indonesia(tanggal_selesai_dt)
+
+            no_hp = self.ambil_no_hp_penyewa(transaksi.kd_penyewa)
+            nama = self.ambil_nama_penyewa(transaksi.kd_penyewa)
+
+            pesan = (
+                f"Hai, {nama}, terima kasih sudah memilih VibeHouse.\n"
+                f"Transaksi kost Anda sudah berhasil dicatat.\n\n"
+                f"Kode Unit : {transaksi.kd_unit}\n"
+                f"Periode : {tgl_mulai_str} s.d {tgl_selesai_str}\n"
+                f"Total Bayar : Rp {transaksi.jumlah_bayar:,}\n"
+                f"Status : {transaksi.status_transaksi.capitalize()}\n\n"
+                f"Semoga betah di VibeHouse! ✨"
+            )
+
+            self.kirim_wa_wablas(no_hp, pesan)
 
             print("✅ Transaksi dan detail berhasil ditambahkan.")
 

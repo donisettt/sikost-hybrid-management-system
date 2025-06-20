@@ -127,21 +127,9 @@ class TransaksiApp(tk.Frame):
                 if key == "tanggal_mulai":
                     ent.bind("<<DateEntrySelected>>", self.tanggal_mulai_changed)
                 self.entries[key] = ent
-
             elif key == "status_transaksi":
-                var = tk.StringVar(value="lunas")
-
-                frame_status = tk.Frame(frame_input, bg=self.entry_bg)
-                frame_status.grid(row=row, column=col + 1, pady=6, sticky="w")
-
-                rb_lunas = tk.Radiobutton(frame_status, text="Lunas", variable=var, value="lunas", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
-                rb_belum = tk.Radiobutton(frame_status, text="Belum Lunas", variable=var, value="belum_lunas", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
-                rb_lunas.pack(side="left", padx=(0, 10))
-                rb_belum.pack(side="left")
-                self.entries[key] = {
-                    "var": var,
-                    "widgets": [rb_lunas, rb_belum]
-                }
+                var = tk.StringVar(value="lunas")  # default
+                self.entries[key] = {"var": var}
             else:
                 if key in ["diskon", "biaya_tambahan", "uang_penyewa"]:
                     vcmd = (self.register(self.hanya_angka), "%P")
@@ -228,7 +216,7 @@ class TransaksiApp(tk.Frame):
     def update_jumlah_bayar_otomatis(self, event=None):
         def safe_float(value):
             try:
-                return float(value.strip()) if value.strip() != "" else 0.0
+                return float(value.strip().replace(".", "").replace(",", "")) if value.strip() != "" else 0.0
             except (ValueError, AttributeError):
                 return 0.0
 
@@ -243,15 +231,24 @@ class TransaksiApp(tk.Frame):
         def format_idr(number):
             return f"{int(number):,}".replace(",", ".")
 
+        # Update jumlah_bayar
         self.entries["jumlah_bayar"].config(state="normal")
         self.entries["jumlah_bayar"].delete(0, "end")
         self.entries["jumlah_bayar"].insert(0, format_idr(jumlah_bayar))
         self.entries["jumlah_bayar"].config(state="readonly")
 
+        # Update kembalian
         self.entries["kembalian"].config(state="normal")
         self.entries["kembalian"].delete(0, "end")
-        self.entries["kembalian"].insert(0, format_idr(kembalian))
+        self.entries["kembalian"].insert(0, format_idr(kembalian if kembalian >= 0 else 0))
         self.entries["kembalian"].config(state="readonly")
+
+        # 🔥 Set status otomatis
+        # Di bagian bawah update_jumlah_bayar_otomatis()
+        if uang_penyewa >= jumlah_bayar:
+            self.entries["status_transaksi"]["var"].set("lunas")
+        else:
+            self.entries["status_transaksi"]["var"].set("belum_lunas")
 
     def show_transaksi_detail(self, data):
         self.clear_container()
@@ -334,12 +331,12 @@ class TransaksiApp(tk.Frame):
                 elif isinstance(entry, DateEntry):
                     data[key] = entry.get_date().strftime('%Y-%m-%d')
                 elif isinstance(entry, dict) and "var" in entry:
-                    # Spesial buat status_transaksi (radio button)
-                    data[key] = entry["var"].get()
+                    # Bisa diabaikan karena status_transaksi diatur otomatis
+                    continue
                 elif isinstance(entry, tk.StringVar):
                     data[key] = entry.get()
                 else:
-                    data[key] = str(entry)  # fallback darurat
+                    data[key] = str(entry)  # Fallback darurat
             except Exception as e:
                 messagebox.showerror("Error", f"Terjadi kesalahan saat mengambil data input: {e}")
                 return
@@ -348,13 +345,32 @@ class TransaksiApp(tk.Frame):
             messagebox.showwarning("Input tidak lengkap", "Pilih penyewa dan kode unit.")
             return
 
-        tgl_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
-        tgl_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
+        try:
+            tgl_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
+            tgl_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
+        except Exception as e:
+            messagebox.showerror("Tanggal Error", "Format tanggal tidak valid.")
+            return
+
         if tgl_mulai >= tgl_selesai:
             messagebox.showwarning("Tanggal Salah", "Tanggal selesai harus setelah tanggal mulai.")
             return
 
         try:
+            # Bersihkan nilai-nilai angka
+            total_harga = self.bersihkan_angka(data["total_harga"])
+            diskon = self.bersihkan_angka(data["diskon"])
+            biaya_tambahan = self.bersihkan_angka(data["biaya_tambahan"])
+            jumlah_bayar = self.bersihkan_angka(data["jumlah_bayar"])
+            uang_penyewa = self.bersihkan_angka(data["uang_penyewa"])
+            kembalian = self.bersihkan_angka(data["kembalian"])
+
+            # ✅ Tentukan status transaksi secara otomatis
+            if uang_penyewa >= jumlah_bayar:
+                status_transaksi = "lunas"
+            else:
+                status_transaksi = "belum_lunas"
+
             transaksi = Transaksi(
                 kd_transaksi=data["kode_transaksi"],
                 kd_transaksi_bulanan=self.kd_transaksi_bulanan,
@@ -363,13 +379,13 @@ class TransaksiApp(tk.Frame):
                 tanggal_mulai=data["tanggal_mulai"],
                 tanggal_selesai=data["tanggal_selesai"],
                 tanggal_transaksi=data["tanggal_transaksi"],
-                total_harga=self.bersihkan_angka(data["total_harga"]),
-                status_transaksi=data["status_transaksi"],
-                diskon=self.bersihkan_angka(data["diskon"]),
-                biaya_tambahan=self.bersihkan_angka(data["biaya_tambahan"]),
-                jumlah_bayar=self.bersihkan_angka(data["jumlah_bayar"]),
-                uang_penyewa=self.bersihkan_angka(data["uang_penyewa"]),
-                kembalian=self.bersihkan_angka(data["kembalian"])
+                total_harga=total_harga,
+                status_transaksi=status_transaksi,
+                diskon=diskon,
+                biaya_tambahan=biaya_tambahan,
+                jumlah_bayar=jumlah_bayar,
+                uang_penyewa=uang_penyewa,
+                kembalian=kembalian
             )
 
             self.controller.tambah_transaksi(transaksi)
