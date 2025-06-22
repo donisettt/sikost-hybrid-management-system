@@ -8,7 +8,7 @@ from models.pengeluaran import Pengeluaran
 from controllers.pengeluaran_controller import PengeluaranController
 
 class PengeluaranApp(tk.Frame):
-    def __init__(self, parent):
+    def __init__(self, parent, user_data):
         super().__init__(parent)
 
         self.bg_color = "#eef5f9"
@@ -21,6 +21,7 @@ class PengeluaranApp(tk.Frame):
 
         self.configure(bg=self.bg_color)
         self.controller = PengeluaranController()
+        self.user_data = user_data
 
         style = ttk.Style()
         style.theme_use("default")
@@ -71,6 +72,11 @@ class PengeluaranApp(tk.Frame):
 
             entry.grid(row=i, column=1, sticky="ew", pady=5)
             self.entries[label_text.lower().replace(" ", "_")] = entry
+
+        if 'dibuat_oleh' in self.entries:
+            nama_user = self.user_data.get("nama", "")
+            self.entries['dibuat_oleh'].insert(0, nama_user)
+            self.entries['dibuat_oleh'].config(state="disabled")
 
         frame_input.columnconfigure(1, weight=1)
 

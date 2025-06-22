@@ -28,6 +28,11 @@ class DashboardController:
         result = self.db.fetchone()["total"]
         return result if result else 0
 
+    def get_total_pendapatan(self):
+        self.db.execute("SELECT SUM(jumlah_bayar) AS total FROM transaksi")
+        result = self.db.fetchone()["total"]
+        return result if result else 0
+
     def get_total_pendapatan_bulan_ini(self):
         now = datetime.now()
         query = """

@@ -146,7 +146,7 @@ class DashboardApp(tk.Frame):
         card_frame.pack(fill="x", pady=(0, 10))
 
         def create_card(parent, title, value, color):
-            card = tk.Frame(parent, bg="white", width=200, height=110, highlightbackground="#ccc", highlightthickness=1)
+            card = tk.Frame(parent, bg="white", width=180, height=110, highlightbackground="#ccc", highlightthickness=1)
             card.pack_propagate(False)
 
             header = tk.Label(card, text=title, font=("Segoe UI", 10, "bold"), bg=color, fg="white")
@@ -166,7 +166,8 @@ class DashboardApp(tk.Frame):
         jumlah_transaksi_bulan_ini = dashboard_ctrl.get_jumlah_transaksi_bulan_ini()
         total_transaksi = dashboard_ctrl.get_total_transaksi()
         total_pengeluaran = dashboard_ctrl.get_total_pengeluaran()
-        total_pendapatan = dashboard_ctrl.get_total_pendapatan_bulan_ini()
+        total_pendapatan = dashboard_ctrl.get_total_pendapatan()
+        total_pendapatan_perbulan = dashboard_ctrl.get_total_pendapatan_bulan_ini()
         belum_lunas = dashboard_ctrl.get_transaksi_belum_lunas()
         transaksi_hari_ini = dashboard_ctrl.get_transaksi_hari_ini()
         penyewa_teraktif = dashboard_ctrl.get_top_penyewa()
@@ -179,20 +180,21 @@ class DashboardApp(tk.Frame):
         card2 = create_card(card_frame, "Transaksi Bulan Ini", jumlah_transaksi_bulan_ini, "#e67e22")
         card3 = create_card(card_frame, "Total Transaksi", total_transaksi, "#27ae60")
         card4 = create_card(card_frame, "Total Pengeluaran", format_rupiah(total_pengeluaran), "#c0392b")
-
-        card5 = create_card(card_frame, "Pendapatan Bulan Ini", format_rupiah(total_pendapatan), "#8e44ad")
-        card6 = create_card(card_frame, "Belum Lunas", belum_lunas, "#f39c12")
-        card7 = create_card(card_frame, "Hari Ini", transaksi_hari_ini, "#16a085")
-        card8 = create_card(card_frame, "Jatuh Tempo", notif_jatuh_tempo, "#d35400")
+        card5 = create_card(card_frame, "Pendapatan Bulan Ini", format_rupiah(total_pendapatan_perbulan), "#8e44ad")
+        card6 = create_card(card_frame, "Total Pendapatan", format_rupiah(total_pendapatan), "#e67e22")
+        card7 = create_card(card_frame, "Belum Lunas", belum_lunas, "#f39c12")
+        card8 = create_card(card_frame, "Hari Ini", transaksi_hari_ini, "#16a085")
+        card9 = create_card(card_frame, "Jatuh Tempo", notif_jatuh_tempo, "#d35400")
 
         card1.grid(row=0, column=0, padx=10, pady=4)
         card2.grid(row=0, column=1, padx=10, pady=5)
         card3.grid(row=0, column=2, padx=10, pady=5)
         card4.grid(row=0, column=3, padx=10, pady=5)
-        card5.grid(row=1, column=0, padx=10, pady=5)
-        card6.grid(row=1, column=1, padx=10, pady=5)
-        card7.grid(row=1, column=2, padx=10, pady=5)
-        card8.grid(row=1, column=3, padx=10, pady=5)
+        card5.grid(row=0, column=4, padx=10, pady=5)
+        card6.grid(row=1, column=0, padx=10, pady=5)
+        card7.grid(row=1, column=1, padx=10, pady=5)
+        card8.grid(row=1, column=2, padx=10, pady=5)
+        card9.grid(row=1, column=3, padx=10, pady=5)
 
         # === Notifikasi Reminder ===
         if notif_jatuh_tempo > 0:
@@ -244,7 +246,7 @@ class DashboardApp(tk.Frame):
 
     def show_pengeluaran(self):
         self.clear_container()
-        pengeluaran_frame = PengeluaranApp(self.container)
+        pengeluaran_frame = PengeluaranApp(self.container, self.user_data)
         pengeluaran_frame.pack(fill="both", expand=True)
         self.current_frame = pengeluaran_frame
 
@@ -253,7 +255,7 @@ class DashboardApp(tk.Frame):
             widget.destroy()
 
         controller = DetailTransaksiController()
-        detail_frame = DetailTransaksiApp(self.container, controller)
+        detail_frame = DetailTransaksiApp(self.container, controller, self.user_data)
         detail_frame.pack(fill="both", expand=True)
         self.current_frame = detail_frame
 

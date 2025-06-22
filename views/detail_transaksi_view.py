@@ -11,9 +11,10 @@ import re
 from datetime import datetime
 
 class DetailTransaksiApp(tk.Frame):
-    def __init__(self, parent, controller):
+    def __init__(self, parent, controller, user_data):
         super().__init__(parent)
         self.controller = controller
+        self.user_data = user_data
         self.configure(bg="white")
 
         self.entries = {}
@@ -87,11 +88,17 @@ class DetailTransaksiApp(tk.Frame):
         frame_tombol = tk.Frame(action_preview_container, bg="white")
         frame_tombol.pack(side="left", padx=30, pady=(0, 220))
 
-        btn_cetak = tk.Button(frame_tombol, text="Cetak Struk", bg="#4CAF50", fg="white", font=("Segoe UI", 9, "bold"), width=14, command=self.cetak_struk_pdf)
-        btn_cetak.pack(pady=3)
+        role = self.user_data.get('role', '').lower()
 
-        btn_hapus = tk.Button(frame_tombol, text="Hapus", bg="#f44336", fg="white", font=("Segoe UI", 9, "bold"), width=14)
-        btn_hapus.pack(pady=3)
+        if role == 'admin':
+            btn_cetak = tk.Button(frame_tombol, text="Cetak Struk", bg="#4CAF50", fg="white", font=("Segoe UI", 9, "bold"), width=14, command=self.cetak_struk_pdf)
+            btn_cetak.pack(pady=3)
+
+            btn_hapus = tk.Button(frame_tombol, text="Hapus", bg="#f44336", fg="white", font=("Segoe UI", 9, "bold"), width=14)
+            btn_hapus.pack(pady=3)
+        else:
+            btn_cetak = tk.Button(frame_tombol, text="Cetak Struk", bg="#4CAF50", fg="white", font=("Segoe UI", 9, "bold"), width=14, command=self.cetak_struk_pdf)
+            btn_cetak.pack(pady=3)
 
         preview = tk.LabelFrame(action_preview_container, text="Preview Struk", bg="white", width=240, height=300,
                                 font=("Segoe UI", 9, "bold"))
@@ -151,6 +158,10 @@ class DetailTransaksiApp(tk.Frame):
 
     def cetak_struk_pdf(self):
         e = self.entries
+
+        if not e['kode_transaksi'].get() or not e['nama_penyewa'].get() or not e['jumlah_bayar'].get():
+            messagebox.showwarning("Peringatan", "Tidak ada data transaksi yang bisa dicetak.\nSilakan pilih transaksi terlebih dahulu.")
+            return
 
         struk_lines = [
             "SIkost VibeHouse",
