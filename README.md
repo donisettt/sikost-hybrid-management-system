@@ -1,6 +1,6 @@
-## Project Sistem Informasi Kost (SIKOST) Berbasis Hybrid Desktop-Web
+## Project Sistem Informasi Kost (SIKOST) Berbasis Desktop
 
-Sistem Informasi Kost (SIKOST) adalah aplikasi berbasis Python (TKinter) dan MySQL yang digunakan untuk mengelola data kost secara efektif dan efisien. Aplikasi ini dirancang untuk membantu pengelola kost dalam melakukan pencatatan data kamar, penyewa, transaksi, dan laporan dengan mudah.
+Sistem Informasi Kost (SIKOST) adalah aplikasi berbasis desktop menggunakan bahasa pemrograman Python (TKinter GUI) dan MySQL yang digunakan untuk mengelola data kost secara efektif dan efisien. Aplikasi ini dirancang untuk membantu pengelola kost dalam melakukan pencatatan data kamar, penyewa, transaksi, dan laporan dengan mudah.
 
 Fitur utama sementara meliputi:
 - Manajemen data kamar kost
@@ -26,13 +26,13 @@ Fitur utama sementara meliputi:
 
 Anggota kelompok:
 
-| Nama                                | Jobdesk                                  |
-|-------------------------------------|------------------------------------------|
-| Doni Setiawan Wahyono - 23552011146 | Lead Full Stack Developer                |
-| Aisah Gandari Rahmah - 23552011127  | UI/UX Designer & Database Architect      |
-| Lutfi Mahesa Abdul K - 23552011147  | UI/UX Designer & Database Architect      |
+| Nama                                | Jobdesk                             |
+|-------------------------------------|-------------------------------------|
+| Doni Setiawan Wahyono - 23552011146 | Full Stack Developer                |
+| Aisah Gandari Rahmah - 23552011127  | UI/UX Designer & Database Architect |
+| Lutfi Mahesa Abdul K - 23552011147  | UI/UX Designer & Database Architect |
 | Ariyan Kusharthanto - 23552011168   | Project Administrator & Research Analyst |
-| Indri Rohmawati  -  23552011137     | Project Administrator & Research Analyst                                         |
+| Indri Rohmawati  -  23552011137     | Project Administrator & Research Analyst                                    |
 
 ## Implementasi Hasil Project
 

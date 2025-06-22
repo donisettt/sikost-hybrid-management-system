@@ -88,7 +88,7 @@ class DashboardController:
         query = """
             SELECT COUNT(*) AS total FROM transaksi 
             WHERE tanggal_selesai BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)
-            AND status_transaksi != 'Lunas'
+            AND status_transaksi != 'lunas'
         """
         self.db.execute(query)
         return self.db.fetchone()["total"]
