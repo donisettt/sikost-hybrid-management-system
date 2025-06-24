@@ -92,3 +92,20 @@ class DashboardController:
         """
         self.db.execute(query)
         return self.db.fetchone()["total"]
+
+    def get_data_jenis_kelamin(self):
+        query = "SELECT jenis_kelamin, COUNT(*) as jumlah FROM penyewa GROUP BY jenis_kelamin"
+        self.db.execute(query)
+        result = self.db.fetchall()
+        return {row["jenis_kelamin"]: row["jumlah"] for row in result}
+
+    def get_tren_jumlah_bayar_perbulan(self, tahun):
+        query = """
+            SELECT MONTH(tanggal_transaksi) AS bulan, SUM(jumlah_bayar) AS total
+            FROM transaksi
+            WHERE YEAR(tanggal_transaksi) = %s
+            GROUP BY bulan
+            ORDER BY bulan
+        """
+        self.db.execute(query, (tahun,))
+        return self.db.fetchall()

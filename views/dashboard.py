@@ -6,6 +6,8 @@ from datetime import datetime
 from io import BytesIO
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib.pyplot as plt
+import pandas as pd
+from calendar import month_abbr
 from views.kamar_view import KamarApp
 from views.unitKamar_view import UnitKamarApp
 from views.penyewa_view import PenyewaApp
@@ -200,6 +202,64 @@ class DashboardApp(tk.Frame):
         if notif_jatuh_tempo > 0:
             tk.Label(frame, text=f"Ada {notif_jatuh_tempo} transaksi yang akan jatuh tempo minggu ini!",
                      fg="red", bg="#ecf0f1", font=("Segoe UI", 10, "italic")).pack(pady=(10, 0))
+
+        # === Chart Container ===
+        chart_container = tk.Frame(frame, bg="#ecf0f1")
+        chart_container.pack(padx=10, pady=20, anchor="w", fill="x")
+
+        # === Chart Jenis Kelamin ===
+        gender_data = dashboard_ctrl.get_data_jenis_kelamin()
+        labels = list(gender_data.keys())
+        sizes = list(gender_data.values())
+        colors = ['#3498db', '#e74c3c']
+
+        fig1, ax1 = plt.subplots(figsize=(4, 3.5), dpi=100)
+        ax1.pie(sizes, labels=labels, autopct='%1.1f%%', colors=colors, startangle=90, textprops={'fontsize': 8})
+        ax1.axis('equal')
+
+        chart_frame1 = tk.Frame(chart_container, bg="#ecf0f1")
+        chart_frame1.pack(side="left", padx=10)
+
+        chart_label1 = tk.Label(chart_frame1, text="Distribusi Jenis Kelamin", font=("Segoe UI", 10, "bold"),
+                                bg="#ecf0f1")
+        chart_label1.pack(anchor="w")
+
+        canvas1 = FigureCanvasTkAgg(fig1, master=chart_frame1)
+        canvas1.draw()
+        canvas1.get_tk_widget().pack()
+
+        # === Grafik Tren Transaksi Bulanan ===
+        data_tren = dashboard_ctrl.get_tren_transaksi_perbulan(datetime.now().year)
+        if data_tren:
+            import pandas as pd
+            from calendar import month_abbr
+
+            df = pd.DataFrame(data_tren)
+            df['bulan'] = df['bulan'].astype(int)
+            df.set_index('bulan', inplace=True)
+
+            full_months = pd.DataFrame(index=range(1, 13))
+            full_months['total'] = 0
+            full_months.update(df)
+            full_months['nama_bulan'] = full_months.index.map(lambda x: month_abbr[x])
+
+            fig2, ax2 = plt.subplots(figsize=(6, 3.5), dpi=100)
+            ax2.plot(full_months['nama_bulan'], full_months['total'], marker='o', color="#1abc9c", linewidth=2)
+            ax2.set_title("Tren Jumlah Transaksi Bulanan", fontsize=8)
+            ax2.set_ylabel("Jumlah Transaksi")
+            ax2.set_xlabel("Bulan")
+            ax2.grid(True, linestyle='--', alpha=0.5)
+            ax2.tick_params(axis='x', rotation=30)
+
+            chart_frame2 = tk.Frame(chart_container, bg="#ecf0f1")
+            chart_frame2.pack(side="left", padx=10)
+
+            chart_label2 = tk.Label(chart_frame2, text="Grafik Tren Transaksi Bulanan", font=("Segoe UI", 10, "bold"), bg="#ecf0f1")
+            chart_label2.pack(anchor="w")
+
+            canvas2 = FigureCanvasTkAgg(fig2, master=chart_frame2)
+            canvas2.draw()
+            canvas2.get_tk_widget().pack()
 
     def show_kamar(self):
         self.clear_container()
