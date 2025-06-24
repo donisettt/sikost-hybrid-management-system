@@ -1,4 +1,6 @@
 import tkinter as tk
+import os
+from tkinter import filedialog
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 from datetime import datetime
@@ -40,7 +42,7 @@ class LaporanApp(tk.Frame):
         tahun_cb.grid(row=1, column=1, pady=5)
 
         ttk.Label(frame, text="Kategori:", background="white").grid(row=2, column=0, sticky="w")
-        kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_bln_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=20)
+        kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_bln_var, values=["Semua", "Pemasukan", "Pengeluaran"], state="readonly", width=20)
         kategori_cb.grid(row=2, column=1, pady=5)
 
         tk.Button(frame, text="Buat Laporan", bg="green", fg="white", command=self.export_laporan_bulanan).grid(row=3, columnspan=2, pady=10, padx=(125, 0))
@@ -84,6 +86,8 @@ class LaporanApp(tk.Frame):
     def _get_tahun_list(self):
         return [str(year) for year in range(2020, datetime.now().year + 1)]
 
+    # laporan_view.py (dalam class)
+
     def export_laporan_bulanan(self):
         bulan = self.bulan_var.get()
         tahun = self.tahun_bln_var.get()
@@ -98,12 +102,29 @@ class LaporanApp(tk.Frame):
             messagebox.showinfo("Info", "Tidak ada data untuk laporan.")
             return
 
-        headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali",
-                   "Status"]
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename_excel = f"laporan_bulanan_{timestamp}.xlsx"
-        filename_pdf = f"laporan_bulanan_{timestamp}.pdf"
+        # Pilih folder untuk simpan
+        folder_path = filedialog.askdirectory(title="Pilih Folder untuk Simpan Laporan")
+        if not folder_path:
+            messagebox.showinfo("Batal", "Export laporan dibatalkan.")
+            return
 
-        self.controller.export_excel(data, headers, filename_excel)
-        self.controller.export_pdf(data, headers, filename_pdf)
-        messagebox.showinfo("Sukses", f"Laporan berhasil diekspor sebagai:\n{filename_excel} & {filename_pdf}")
+        # Buat nama file dan path lengkap
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename_excel = f"laporan_{kategori.lower()}_{timestamp}.xlsx"
+        full_path_excel = os.path.join(folder_path, filename_excel)
+
+        # Header sesuai kategori
+        if kategori == "Pengeluaran":
+            headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
+        else:
+            headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali",
+                       "Status"]
+
+        print("==== DEBUG DATA YANG DIEXPORT ====")
+        for row in data:
+            print(row)
+
+        # Ekspor hanya ke Excel
+        self.controller.export_excel(data, headers, full_path_excel)
+
+        messagebox.showinfo("Sukses", f"Laporan berhasil diekspor ke:\n{full_path_excel}")
