@@ -238,13 +238,28 @@ class TransaksiController:
             )
             self.db.execute(query_transaksi, params_transaksi)
             self.db.commit()
+
+            # 🔁 Cek apakah penyewa sudah pernah punya unit sebelumnya
+            self.db.execute("SELECT kd_unit FROM penyewa WHERE kd_penyewa = %s", (transaksi.kd_penyewa,))
+            result = self.db.fetchone()
+            unit_lama = result['kd_unit'] if result and result['kd_unit'] else None
+
+            # Jika unit lama tidak sama dengan unit baru → set status unit lama jadi 'kosong'
+            if unit_lama and unit_lama != transaksi.kd_unit:
+                self.db.execute("UPDATE unit_kamar SET status = 'kosong' WHERE kd_unit = %s", (unit_lama,))
+                self.db.commit()
+
+            # Update unit baru jadi 'terisi'
             self.db.execute("UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s", (transaksi.kd_unit,))
             self.db.commit()
 
-            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",(transaksi.kd_unit, transaksi.kd_penyewa))
+            # Update kolom kd_unit di penyewa
+            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",
+                            (transaksi.kd_unit, transaksi.kd_penyewa))
             self.db.commit()
-            kd_detail_transaksi = self.generate_kd_detail_transaksi()
 
+            # Simpan ke tabel detail_transaksi
+            kd_detail_transaksi = self.generate_kd_detail_transaksi()
             query_detail = """
                 INSERT INTO detail_transaksi (
                     kd_detail_transaksi, kd_transaksi, kd_penyewa, kd_unit, kd_transaksi_bulanan,
@@ -275,7 +290,6 @@ class TransaksiController:
 
             tanggal_mulai_dt = datetime.strptime(transaksi.tanggal_mulai, "%Y-%m-%d").date()
             tanggal_selesai_dt = datetime.strptime(transaksi.tanggal_selesai, "%Y-%m-%d").date()
-
             tgl_mulai_str = self.format_tanggal_indonesia(tanggal_mulai_dt)
             tgl_selesai_str = self.format_tanggal_indonesia(tanggal_selesai_dt)
 
@@ -332,11 +346,6 @@ class TransaksiController:
         self.db.execute(query, params)
         self.db.commit()
 
-    def hapus_transaksi(self, kd_transaksi):
-        query = "DELETE FROM transaksi WHERE kd_transaksi = %s"
-        self.db.execute(query, (kd_transaksi,))
-        self.db.commit()
-
     def cari_transaksi(self, keyword):
         query = """
             SELECT * FROM transaksi
@@ -368,7 +377,7 @@ class TransaksiController:
         nama_bulan, tahun = self.get_bulan_tahun_by_kd(kd_transaksi_bulanan)
         bulan_str = nama_bulan[:3].upper()
         tahun_str = str(tahun)[-2:]
-        prefix = f"TRX-{bulan_str}{tahun_str}-"
+        prefix = f"TVH-{bulan_str}{tahun_str}-"
 
         query = f"""
             SELECT kd_transaksi FROM transaksi

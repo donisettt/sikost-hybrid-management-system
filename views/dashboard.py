@@ -65,6 +65,7 @@ class DashboardApp(tk.Frame):
         self.load_icon("kamar", "https://cdn-icons-png.flaticon.com/512/1946/1946436.png", (24, 24))
         self.load_icon("penyewa", "https://cdn-icons-png.flaticon.com/512/921/921347.png",(24, 24))
         self.load_icon("transaksi", "https://cdn-icons-png.flaticon.com/512/833/833524.png",(24, 24))
+        self.load_icon("laporan", "https://cdn-icons-png.flaticon.com/512/3146/3146674.png", (24, 24))
 
         # --- SIDEBAR ---
         self.sidebar = Sidebar(
@@ -244,12 +245,13 @@ class DashboardApp(tk.Frame):
             full_months['nama_bulan'] = full_months.index.map(lambda x: month_abbr[x])
 
             fig2, ax2 = plt.subplots(figsize=(6, 3.5), dpi=100)
-            ax2.plot(full_months['nama_bulan'], full_months['total'], marker='o', color="#1abc9c", linewidth=2)
+            ax2.plot(full_months.index, full_months['total'], marker='o', color="#1abc9c", linewidth=2)
             ax2.set_title("Tren Jumlah Transaksi Bulanan", fontsize=8)
             ax2.set_ylabel("Jumlah Transaksi")
             ax2.set_xlabel("Bulan")
             ax2.grid(True, linestyle='--', alpha=0.5)
-            ax2.tick_params(axis='x', rotation=30)
+            ax2.set_xticks(full_months.index)
+            ax2.set_xticklabels(full_months['nama_bulan'], rotation=30)
 
             chart_frame2 = tk.Frame(chart_container, bg="#ecf0f1")
             chart_frame2.pack(side="left", padx=10)

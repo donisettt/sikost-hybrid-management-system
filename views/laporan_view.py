@@ -25,10 +25,6 @@ class LaporanApp(tk.Frame):
         self.kategori_bln_var = tk.StringVar()
         self._buat_form_laporan_bulanan(frame_laporan)
 
-        self.tahun_thn_var = tk.StringVar()
-        self.kategori_thn_var = tk.StringVar()
-        self._buat_form_laporan_tahunan(frame_laporan)
-
     def _buat_form_laporan_bulanan(self, parent):
         frame = tk.LabelFrame(parent, text="Laporan Bulanan", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
         frame.pack(side="left", padx=10)
@@ -46,20 +42,6 @@ class LaporanApp(tk.Frame):
         kategori_cb.grid(row=2, column=1, pady=5)
 
         tk.Button(frame, text="Buat Laporan", bg="green", fg="white", command=self.export_laporan_bulanan).grid(row=3, columnspan=2, pady=10, padx=(125, 0))
-
-    def _buat_form_laporan_tahunan(self, parent):
-        frame = tk.LabelFrame(parent, text="Laporan Tahunan", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
-        frame.pack(side="left", padx=10)
-
-        ttk.Label(frame, text="Tahun:", background="white").grid(row=0, column=0, sticky="w")
-        tahun_cb = ttk.Combobox(frame, textvariable=self.tahun_thn_var, values=self._get_tahun_list(), state="readonly", width=20)
-        tahun_cb.grid(row=0, column=1, pady=5)
-
-        ttk.Label(frame, text="Kategori:", background="white").grid(row=1, column=0, sticky="w")
-        kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_thn_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=20)
-        kategori_cb.grid(row=1, column=1, pady=5)
-
-        tk.Button(frame, text="Buat Laporan", bg="green", fg="white", command="").grid(row=2, columnspan=2, pady=10, padx=(125, 0))
 
     def _buat_form_laporan_periode(self, parent):
         frame = tk.LabelFrame(parent, text="Laporan Periode", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
@@ -86,7 +68,6 @@ class LaporanApp(tk.Frame):
     def _get_tahun_list(self):
         return [str(year) for year in range(2020, datetime.now().year + 1)]
 
-    # laporan_view.py (dalam class)
 
     def export_laporan_bulanan(self):
         bulan = self.bulan_var.get()
@@ -102,18 +83,15 @@ class LaporanApp(tk.Frame):
             messagebox.showinfo("Info", "Tidak ada data untuk laporan.")
             return
 
-        # Pilih folder untuk simpan
         folder_path = filedialog.askdirectory(title="Pilih Folder untuk Simpan Laporan")
         if not folder_path:
             messagebox.showinfo("Batal", "Export laporan dibatalkan.")
             return
 
-        # Buat nama file dan path lengkap
         timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
         filename_excel = f"laporan_{kategori.lower()}_{timestamp}.xlsx"
         full_path_excel = os.path.join(folder_path, filename_excel)
 
-        # Header sesuai kategori
         if kategori == "Pengeluaran":
             headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
         else:
@@ -124,7 +102,7 @@ class LaporanApp(tk.Frame):
         for row in data:
             print(row)
 
-        # Ekspor hanya ke Excel
-        self.controller.export_excel(data, headers, full_path_excel)
-
+        self.controller.export_excel_pemasukan(data, headers, full_path_excel)
         messagebox.showinfo("Sukses", f"Laporan berhasil diekspor ke:\n{full_path_excel}")
+        pesan = f"Laporan {kategori} bulan {bulan} tahun {tahun} telah diekspor.\nFile: {filename_excel}"
+        self.controller.kirim_wa_admin(pesan)

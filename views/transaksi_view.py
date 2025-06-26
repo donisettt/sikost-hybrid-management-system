@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 import datetime
+import threading
 from models.transaksi import Transaksi
 from controllers.transaksi_controller import TransaksiController
 from controllers.transaksi_bulanan import TransaksiBulananController
@@ -18,6 +19,7 @@ class TransaksiApp(tk.Frame):
         self.nama_to_kode_penyewa = {
             data["nama"]: data["kd_penyewa"] for data in self.kode_penyewa_list
         }
+        self.kode_to_nama_penyewa = {v: k for k, v in self.nama_to_kode_penyewa.items()}
         self.nama_penyewa_list = list(self.nama_to_kode_penyewa.keys())
         self.user_role = user_role
         self.kembali_callback = kembali_callback
@@ -128,8 +130,9 @@ class TransaksiApp(tk.Frame):
                     ent.bind("<<DateEntrySelected>>", self.tanggal_mulai_changed)
                 self.entries[key] = ent
             elif key == "status_transaksi":
-                var = tk.StringVar(value="lunas")  # default
-                self.entries[key] = {"var": var}
+                ent = ttk.Entry(frame_input, width=30, state="readonly")
+                ent.grid(row=row, column=col + 1, pady=6, sticky="w")
+                self.entries[key] = ent
             else:
                 if key in ["diskon", "biaya_tambahan", "uang_penyewa"]:
                     vcmd = (self.register(self.hanya_angka), "%P")
@@ -156,11 +159,14 @@ class TransaksiApp(tk.Frame):
         frame_add_clear = tk.Frame(frame_input, bg=self.entry_bg)
         frame_add_clear.grid(row=5, column=2, columnspan=2, sticky="w", padx=(10, 0), pady=(6, 0))
 
-        self.btn_add = tk.Button(frame_add_clear, text="Batal", command=self.clear_form, fg="white", bg="#9E9E9E", width=8)
-        self.btn_add.pack(side="left", padx=(152, 10))
+        self.btn_add = tk.Button(frame_add_clear, text="Batal", command=self.clear_form, fg="white", bg="#9E9E9E", width=6)
+        self.btn_add.pack(side="left", padx=(117, 10))
 
-        self.btn_clear = tk.Button(frame_add_clear, text="Bayar", command=self.tambah_transaksi, fg="white", bg="#4CAF50", width=8)
+        self.btn_clear = tk.Button(frame_add_clear, text="Bayar", command=self.tambah_transaksi, fg="white", bg="#4CAF50", width=6)
         self.btn_clear.pack(side="left")
+
+        self.btn_update = tk.Button(frame_add_clear, text="Update", command=self.tambah_transaksi, fg="white", bg="#3498db", width=6)
+        self.btn_update.pack(side="left", padx=(10, 0))
 
         frame_search = tk.Frame(self, bg=self.bg_color)
         frame_search.pack(fill='x', padx=20, pady=(5, 10))
@@ -197,7 +203,32 @@ class TransaksiApp(tk.Frame):
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
         self.generate_kode_otomatis()
         self.update_jumlah_bayar_otomatis()
+        self.loading_frame = tk.Frame(self, bg=self.bg_color)
+        self.loading_label = tk.Label(self.loading_frame, text="⏳ Memuat data transaksi...", font=("Segoe UI", 10), bg=self.bg_color, fg="gray")
+        self.loading_label.pack(pady=10)
+
+        self.loading_bar = ttk.Progressbar(self.loading_frame, mode='indeterminate', length=200)
+        self.loading_bar.pack()
+        self.loading_counter = 0
         self.load_data()
+
+    def show_loading(self):
+        self.loading_frame.pack(pady=20)
+        self.loading_bar.start(10)  # animasi jalan
+        self.loading_counter = 0
+        self.animate_loading()
+
+    def animate_loading(self):
+        # animasi dot ... ala loading
+        if self.loading_counter < 30:  # misalnya 30 x 100ms = 3 detik
+            dot_count = (self.loading_counter % 3) + 1
+            self.loading_label.config(text="⏳ Memuat data transaksi" + "." * dot_count)
+            self.loading_counter += 1
+            self.after(100, self.animate_loading)
+
+    def hide_loading(self):
+        self.loading_bar.stop()
+        self.loading_frame.pack_forget()
 
     def hanya_angka(self, value_if_allowed):
         if value_if_allowed == "":
@@ -231,24 +262,22 @@ class TransaksiApp(tk.Frame):
         def format_idr(number):
             return f"{int(number):,}".replace(",", ".")
 
-        # Update jumlah_bayar
         self.entries["jumlah_bayar"].config(state="normal")
         self.entries["jumlah_bayar"].delete(0, "end")
         self.entries["jumlah_bayar"].insert(0, format_idr(jumlah_bayar))
         self.entries["jumlah_bayar"].config(state="readonly")
 
-        # Update kembalian
         self.entries["kembalian"].config(state="normal")
         self.entries["kembalian"].delete(0, "end")
         self.entries["kembalian"].insert(0, format_idr(kembalian if kembalian >= 0 else 0))
         self.entries["kembalian"].config(state="readonly")
 
-        # 🔥 Set status otomatis
-        # Di bagian bawah update_jumlah_bayar_otomatis()
-        if uang_penyewa >= jumlah_bayar:
-            self.entries["status_transaksi"]["var"].set("lunas")
-        else:
-            self.entries["status_transaksi"]["var"].set("belum_lunas")
+        status = "lunas" if uang_penyewa >= jumlah_bayar else "belum_lunas"
+        status_entry = self.entries["status_transaksi"]
+        status_entry.config(state="normal")
+        status_entry.delete(0, "end")
+        status_entry.insert(0, status)
+        status_entry.config(state="readonly")
 
     def show_transaksi_detail(self, data):
         self.clear_container()
@@ -288,11 +317,20 @@ class TransaksiApp(tk.Frame):
                 self.entries["total_harga"].delete(0, tk.END)
         self.update_jumlah_bayar_otomatis()
 
+    def set_mode_input(self):
+        if "penyewa" in self.entries:
+            self.entries["penyewa"].config(state="readonly")
+
+    def set_mode_update(self):
+        if "penyewa" in self.entries:
+            self.entries["penyewa"].config(state="disabled")
+
     def refresh_penyewa_combobox(self):
         penyewa_data = self.controller.fetch_penyewa_belum_transaksi(self.kd_transaksi_bulanan)
         self.nama_to_kode_penyewa = {
             data["nama"]: data["kd_penyewa"] for data in penyewa_data
         }
+        self.kode_to_nama_penyewa = {v: k for k, v in self.nama_to_kode_penyewa.items()}
         self.nama_penyewa_list = list(self.nama_to_kode_penyewa.keys())
 
         combobox = self.entries.get("penyewa")
@@ -314,13 +352,24 @@ class TransaksiApp(tk.Frame):
         self.update_jumlah_bayar_otomatis()
 
     def load_data(self):
-        self.tree.delete(*self.tree.get_children())
-        transaksi_list = self.controller.fetch_transaksi_bulanan(self.kd_transaksi_bulanan) if self.kd_transaksi_bulanan else self.controller.fetch_transaksi()
-        for t in transaksi_list:
-            self.tree.insert('', 'end', values=(
-                t.kd_transaksi, t.kd_penyewa, t.kd_unit,
-                t.tanggal_transaksi, t.status_transaksi
-            ))
+        self.show_loading()
+
+        def load():
+            self.tree.delete(*self.tree.get_children())
+            transaksi_list = self.controller.fetch_transaksi_bulanan(self.kd_transaksi_bulanan) \
+                if self.kd_transaksi_bulanan else self.controller.fetch_transaksi()
+
+            for t in transaksi_list:
+                self.tree.insert('', 'end', values=(
+                    t.kd_transaksi,
+                    self.kode_to_nama_penyewa.get(t.kd_penyewa, t.kd_penyewa),  # tampilkan nama
+                    t.kd_unit,
+                    t.tanggal_transaksi,
+                    t.status_transaksi
+                ))
+
+            self.hide_loading()
+        self.after(500, load)
 
     def tambah_transaksi(self):
         data = {}
@@ -331,7 +380,6 @@ class TransaksiApp(tk.Frame):
                 elif isinstance(entry, DateEntry):
                     data[key] = entry.get_date().strftime('%Y-%m-%d')
                 elif isinstance(entry, dict) and "var" in entry:
-                    # Bisa diabaikan karena status_transaksi diatur otomatis
                     continue
                 elif isinstance(entry, tk.StringVar):
                     data[key] = entry.get()
@@ -357,7 +405,6 @@ class TransaksiApp(tk.Frame):
             return
 
         try:
-            # Bersihkan nilai-nilai angka
             total_harga = self.bersihkan_angka(data["total_harga"])
             diskon = self.bersihkan_angka(data["diskon"])
             biaya_tambahan = self.bersihkan_angka(data["biaya_tambahan"])
@@ -365,7 +412,6 @@ class TransaksiApp(tk.Frame):
             uang_penyewa = self.bersihkan_angka(data["uang_penyewa"])
             kembalian = self.bersihkan_angka(data["kembalian"])
 
-            # ✅ Tentukan status transaksi secara otomatis
             if uang_penyewa >= jumlah_bayar:
                 status_transaksi = "lunas"
             else:
@@ -444,6 +490,7 @@ class TransaksiApp(tk.Frame):
                 messagebox.showerror("Error", f"Gagal menghapus transaksi: {e}")
 
     def clear_form(self):
+        self.set_mode_input()  # 🔓 Kembali ke mode input
         self.refresh_penyewa_combobox()
         self.entries['kode_transaksi'].config(state='normal')
 
@@ -451,33 +498,40 @@ class TransaksiApp(tk.Frame):
             if isinstance(ent, ttk.Combobox):
                 ent.config(state='readonly')
                 ent.current(0)
+
             elif isinstance(ent, DateEntry):
                 ent.set_date(datetime.date.today())
+
             elif isinstance(ent, tk.Entry) or isinstance(ent, tk.Text):
                 ent.config(state='normal')
                 ent.delete(0, 'end')
-                if key in ["diskon", "biaya_tambahan", "kembalian"]:
+
+                if key in ["diskon", "biaya_tambahan"]:
                     ent.insert(0, "0")
+
                 elif key in ["jumlah_bayar", "kembalian"]:
                     ent.insert(0, "0")
                     ent.config(state="readonly")
-            elif isinstance(ent, tk.StringVar):
-                if key == "status_transaksi":
-                    ent.set("lunas")
-                else:
-                    ent.set("")
-            else:
-                pass
+
+                elif key == "status_transaksi":
+                    ent.delete(0, 'end')
+                    ent.insert(0, "belum_lunas")
+                    ent.config(state="readonly")
 
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
 
+        # Refresh kode unit kosong
         if isinstance(self.entries['kode_unit'], ttk.Combobox):
             self.entries['kode_unit'].config(state='readonly')
-            self.entries['kode_unit'].set("Pilih kode unit")
             unit_kosong = self.controller.fetch_kode_unit_kosong()
             self.entries['kode_unit']['values'] = ["Pilih kode unit"] + unit_kosong
             self.entries['kode_unit'].set("Pilih kode unit")
+
+        # Reset penyewa ke awal
+        if isinstance(self.entries['penyewa'], ttk.Combobox):
+            self.entries['penyewa'].config(state='readonly')
+            self.entries['penyewa'].set("Pilih penyewa")
 
     def bersihkan_angka(self, str_angka):
         try:
@@ -488,26 +542,40 @@ class TransaksiApp(tk.Frame):
     def on_tree_select(self, event):
         selected = self.tree.focus()
         if selected:
+            self.set_mode_update()  # ⛔ Ubah jadi mode update
+
             kode_transaksi = self.tree.item(selected, 'values')[0]
             detail_data = self.controller.get_detail_transaksi(kode_transaksi)
 
+            key_map = {
+                "kd_penyewa": "penyewa",
+                "kd_unit": "kode_unit"
+            }
+
             for k, v in detail_data.items():
-                entry = self.entries.get(k)
+                mapped_key = key_map.get(k, k)
+                entry = self.entries.get(mapped_key)
                 if not entry:
                     continue
 
-                if isinstance(entry, tk.Entry):
+                if mapped_key == "penyewa":
+                    nama = self.kode_to_nama_penyewa.get(v, v)
+                    if isinstance(entry, ttk.Combobox):
+                        entry.set(nama)
+
+                elif mapped_key == "kode_unit":
+                    entry.config(state='readonly')
+                    entry.set(v)
+
+
+                elif isinstance(entry, ttk.Entry):
                     entry.config(state='normal')
                     entry.delete(0, 'end')
-                    if k == "penyewa":
-                        nama = next((nama for nama, kode in self.nama_to_kode_penyewa.items() if kode == v), v)
-                        entry.insert(0, nama)
-                    else:
-                        entry.insert(0, str(v))
-                    entry.config(state='readonly')
+                    entry.insert(0, str(v))
+                    if mapped_key != "uang_penyewa":
+                        entry.config(state='readonly')
 
                 elif isinstance(entry, ttk.Combobox):
-                    entry.config(state='readonly')
                     entry.set(v)
 
                 elif isinstance(entry, DateEntry):
@@ -521,8 +589,7 @@ class TransaksiApp(tk.Frame):
                     entry.set(v)
 
             if "status_transaksi" in self.entries:
-                for widget in self.entries["status_transaksi"]["widgets"]:
-                    widget.config(state="disabled")
+                self.entries["status_transaksi"].config(state="readonly")
 
             print("Treeview item values:", self.tree.item(selected, 'values'))
             print("Detail dari DB:", detail_data)

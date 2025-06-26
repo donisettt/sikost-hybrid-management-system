@@ -17,6 +17,7 @@ class UsersController:
                 nama=row["nama"],
                 username=row["username"],
                 password=row["password"],
+                no_hp=row["no_hp"],
                 role=row["role"]
             )
             users_list.append(users)
@@ -24,13 +25,14 @@ class UsersController:
 
     def tambah_users(self, user: User):
         query = """
-            INSERT INTO users (kode_user, nama, username, password, role) VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO users (kode_user, nama, username, password, no_hp, role) VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
             user.kode_user,
             user.nama,
             user.username,
             user.password,
+            user.no_hp,
             user.role
         )
         self.db.execute(query, params)
@@ -39,13 +41,14 @@ class UsersController:
     def update_users(self, user: User):
         query = """
             UPDATE users
-            SET nama = %s, username = %s, password = %s, role = %s
+            SET nama = %s, username = %s, password = %s, no_hp = %s, role = %s
             WHERE kode_user = %s
         """
         params = (
             user.nama,
             user.username,
             user.password,
+            user.no_hp,
             user.role,
             user.kode_user
         )
@@ -74,6 +77,7 @@ class UsersController:
                 nama=row["nama"],
                 username=row["username"],
                 password=row["password"],
+                no_hp=row["no_hp"],
                 role=row["role"]
             )
             users_list.append(user)

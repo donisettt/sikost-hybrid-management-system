@@ -79,10 +79,8 @@ class PenyewaApp(tk.Frame):
                 jk_frame = tk.Frame(frame_input, bg=self.entry_bg)
                 jk_frame.grid(row=i, column=1, pady=6, padx=(5, 0), sticky="w")
 
-                rb_l = tk.Radiobutton(jk_frame, text="Laki-laki", variable=self.jk_var, value="Laki-laki",
-                                      bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
-                rb_p = tk.Radiobutton(jk_frame, text="Perempuan", variable=self.jk_var, value="Perempuan",
-                                      bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_l = tk.Radiobutton(jk_frame, text="Laki-laki", variable=self.jk_var, value="Laki-laki", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_p = tk.Radiobutton(jk_frame, text="Perempuan", variable=self.jk_var, value="Perempuan", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
                 rb_l.pack(side="left", padx=5)
                 rb_p.pack(side="left", padx=5)
                 self.entries[key] = self.jk_var
@@ -93,12 +91,27 @@ class PenyewaApp(tk.Frame):
                 self.entries[key] = ent
 
                 if key == "no_hp":
+                    def hanya_angka(new_value):
+                        return new_value.isdigit() or new_value == ""
+
+                    vcmd = (self.register(hanya_angka), '%P')
+
+                    ent = ttk.Entry(frame_input, width=40, validate="key", validatecommand=vcmd)
+                    ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                    self.entries[key] = ent
+
                     def validasi_nomor(e, entry_target):
                         nomor = entry_target.get().strip()
                         if nomor.startswith("0"):
                             nomor = "62" + nomor[1:]
                         elif not nomor.startswith("62"):
                             nomor = "62" + nomor
+
+                        if not (10 <= len(nomor) <= 15):
+                            messagebox.showwarning("Nomor Tidak Valid", "Nomor HP harus terdiri dari 10 hingga 15 digit angka.")
+                            entry_target.focus_set()
+                            return
+
                         entry_target.delete(0, tk.END)
                         entry_target.insert(0, nomor)
 

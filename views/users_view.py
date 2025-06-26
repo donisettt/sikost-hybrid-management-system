@@ -39,8 +39,17 @@ class UserApp(tk.Frame):
         frame_input = tk.LabelFrame(self, text="Form User", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode User", "Nama", "Username", "Password", "Role"]
+        labels = ["Kode User", "Nama", "No HP", "Username", "Password","Role"]
         self.entries = {}
+
+        def validasi_nomor(event, ent):
+            nomor = ent.get().strip()
+            if nomor.startswith("0"):
+                nomor = "62" + nomor[1:]
+            elif not nomor.startswith("62"):
+                nomor = "62" + nomor
+            ent.delete(0, tk.END)
+            ent.insert(0, nomor)
 
         for i, label_text in enumerate(labels):
             lbl = tk.Label(frame_input, text=label_text, font=("Segoe UI", 10), bg=self.entry_bg, fg=self.fg_color)
@@ -70,9 +79,36 @@ class UserApp(tk.Frame):
                 rb_petugas.pack(side='left', padx=5)
 
             else:
-                ent = ttk.Entry(frame_input, width=40)
-                ent.grid(row=i, column=1, pady=6, padx=(5, 0))
-                self.entries[ent_key] = ent
+                if ent_key == "no_hp":
+                    def hanya_angka(char):
+                        return char.isdigit() or char == ""
+
+                    vcmd = (self.register(hanya_angka), '%P')
+
+                    ent = ttk.Entry(frame_input, width=40, validate='key', validatecommand=vcmd)
+                    ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                    self.entries[ent_key] = ent
+
+                    def validasi_nomor(e, entry_target):
+                        nomor = entry_target.get().strip()
+                        if nomor.startswith("0"):
+                            nomor = "62" + nomor[1:]
+                        elif not nomor.startswith("62"):
+                            nomor = "62" + nomor
+                        entry_target.delete(0, tk.END)
+                        entry_target.insert(0, nomor)
+
+                        if not (10 <= len(nomor) <= 15):
+                            tk.messagebox.showwarning("Nomor Tidak Valid","Nomor HP harus terdiri dari 10 hingga 15 digit.")
+                            entry_target.focus_set()  # Balikin fokus ke kolom
+                            return
+
+                    ent.bind("<FocusOut>", lambda e, entry_target=ent: validasi_nomor(e, entry_target))
+
+                else:
+                    ent = ttk.Entry(frame_input, width=40)
+                    ent.grid(row=i, column=1, pady=6, padx=(5, 0))
+                    self.entries[ent_key] = ent
 
         frame_buttons = tk.Frame(frame_input, bg=self.entry_bg)
         frame_buttons.grid(row=0, column=2, rowspan=5, padx=15, pady=(0, 33))
@@ -103,10 +139,10 @@ class UserApp(tk.Frame):
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kode_user", "nama", "username", "password", "role")
+        columns = ("kode_user", "nama", "no_hp", "username", "password", "role")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        header_names = ["Kode User", "Nama", "Username", "Password", "Role"]
+        header_names = ["Kode User", "Nama", "No HP", "Username", "Password", "Role"]
         for col, header in zip(columns, header_names):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
@@ -131,6 +167,7 @@ class UserApp(tk.Frame):
                 user.nama,
                 user.username,
                 "●●●●●●●",
+                user.no_hp,
                 user.role,
             ))
 
@@ -139,13 +176,14 @@ class UserApp(tk.Frame):
         nama = self.entries['nama'].get().strip()
         username = self.entries['username'].get().strip()
         password = self.entries['password'].get().strip()
+        no_hp = self.entries['no_hp'].get().strip()
         role = self.role_var.get()
 
         if not nama:
             messagebox.showwarning("Peringatan", "Nama user wajib diisi!")
             return
 
-        user = User(kd, nama, username, password, role)
+        user = User(kd, nama, username, password, no_hp, role)
         self.controller.tambah_users(user)
         messagebox.showinfo("Sukses", f"User {nama} berhasil ditambahkan dengan kode {kd}.")
         self.load_data()
@@ -156,13 +194,14 @@ class UserApp(tk.Frame):
         nama = self.entries['nama'].get().strip()
         username = self.entries['username'].get().strip()
         password = self.entries['password'].get().strip()
+        no_hp = self.entries['no_hp'].get().strip()
         role = self.role_var.get()
 
         if not kd:
             messagebox.showwarning("Peringatan", "Pilih User yang akan diupdate!")
             return
 
-        user = User(kd, nama, username, password, role)
+        user = User(kd, nama, username, password, no_hp, role)
         self.controller.update_users(user)
         messagebox.showinfo("Sukses", f"User {nama} berhasil diupdate.")
         self.load_data()
@@ -208,6 +247,9 @@ class UserApp(tk.Frame):
             self.entries['password'].delete(0, 'end')
             self.entries['password'].insert(0, values[3])
 
+            self.entries['no_hp'].delete(0, 'end')
+            self.entries['no_hp'].insert(0, values[4])
+
             role = self.role_var.get()
 
     def cari_users(self, event):
@@ -226,5 +268,6 @@ class UserApp(tk.Frame):
                 user.nama,
                 user.username,
                 user.password,
+                user.no_hp,
                 user.role,
             ))

@@ -9,6 +9,7 @@ import platform
 from reportlab.lib.units import mm
 import re
 from datetime import datetime
+from controllers.detail_transaksi_controller import DetailTransaksiController
 
 class DetailTransaksiApp(tk.Frame):
     def __init__(self, parent, controller, user_data):
@@ -59,6 +60,7 @@ class DetailTransaksiApp(tk.Frame):
         frame_form.pack(fill="both", expand=True, padx=10, pady=10)
 
         labels = [
+            "Kode Detail Transaksi",
             "Kode Transaksi", "Nama Penyewa", "Nama Unit",
             "Tanggal Transaksi", "Tanggal Mulai", "Tanggal Selesai",
             "Total Harga", "Diskon", "Biaya Tambahan",
@@ -94,7 +96,15 @@ class DetailTransaksiApp(tk.Frame):
             btn_cetak = tk.Button(frame_tombol, text="Cetak Struk", bg="#4CAF50", fg="white", font=("Segoe UI", 9, "bold"), width=14, command=self.cetak_struk_pdf)
             btn_cetak.pack(pady=3)
 
-            btn_hapus = tk.Button(frame_tombol, text="Hapus", bg="#f44336", fg="white", font=("Segoe UI", 9, "bold"), width=14)
+            btn_hapus = tk.Button(
+                frame_tombol,
+                text="Hapus",
+                bg="#f44336",
+                fg="white",
+                font=("Segoe UI", 9, "bold"),
+                width=14,
+                command=self.konfirmasi_hapus
+            )
             btn_hapus.pack(pady=3)
         else:
             btn_cetak = tk.Button(frame_tombol, text="Cetak Struk", bg="#4CAF50", fg="white", font=("Segoe UI", 9, "bold"), width=14, command=self.cetak_struk_pdf)
@@ -215,17 +225,29 @@ class DetailTransaksiApp(tk.Frame):
         else:
             os.system(f"xdg-open '{pdf_path}'")
 
-    def hapus_detail_transaksi(self):
-        kd_detail = self.entries['kode_detail_transaksi'].get().strip()
+    def get_kd_detail_terpilih(self):
+        return self.entries.get("kode_detail_transaksi").get()
+
+    def konfirmasi_hapus(self):
+        kd_detail = self.get_kd_detail_terpilih()
+        print("ID yang akan dihapus:", kd_detail)
+
         if not kd_detail:
-            messagebox.showwarning("Peringatan", "Pilih data dulu untuk dihapus.")
+            messagebox.showwarning("Peringatan", "Pilih detail transaksi yang ingin dihapus.")
             return
 
-        if messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus transaksi {kd_detail}?"):
-            try:
-                self.controller.hapus_detail_transaksi(kd_detail)
-                messagebox.showinfo("Sukses", "Data berhasil dihapus.")
-                self.load_data()
-                self.clear_form()
-            except Exception as e:
-                messagebox.showerror("Gagal", f"Gagal hapus data.\n{e}")
+        konfirmasi = messagebox.askyesno("Konfirmasi", "Yakin ingin menghapus transaksi ini?")
+        if konfirmasi:
+            sukses = self.controller.hapus_detail_transaksi(kd_detail)
+            if sukses:
+                messagebox.showinfo("Sukses", "Data transaksi berhasil dihapus.")
+                self.refresh_data()  # opsional, panggil ulang data di tabel atau preview
+            else:
+                messagebox.showerror("Gagal", "Gagal menghapus transaksi. Mungkin ID tidak ditemukan.")
+
+    def refresh_data(self):
+        for entry in self.entries.values():
+            entry.config(state="normal")
+            entry.delete(0, tk.END)
+            entry.config(state="readonly")
+        self.preview_text.config(text="")

@@ -19,6 +19,20 @@ class LoginFrame(tk.Frame):
 
         self.create_widgets()
 
+    def on_enter_pressed(self, event):
+        if self.entry_pass.get().strip():
+            self.login()
+
+    def login(self):
+        username = self.entry_user.get()
+        password = self.entry_pass.get()
+
+        user_data = self.db.cek_login(username, password)
+        if user_data:
+            self.on_login_success(user_data)
+        else:
+            messagebox.showerror("Login Gagal", "Username atau password salah.")
+
     def create_widgets(self):
         style = ttk.Style()
         style.theme_use("clam")
@@ -81,17 +95,3 @@ class LoginFrame(tk.Frame):
 
         form_frame.columnconfigure(0, weight=1)
         form_frame.columnconfigure(1, weight=1)
-
-    def on_enter_pressed(self, event):
-        if self.entry_pass.get().strip():
-            self.login()
-
-    def login(self):
-        username = self.entry_user.get()
-        password = self.entry_pass.get()
-
-        user_data = self.db.cek_login(username, password)
-        if user_data:
-            self.on_login_success(user_data)
-        else:
-            messagebox.showerror("Login Gagal", "Username atau password salah.")
