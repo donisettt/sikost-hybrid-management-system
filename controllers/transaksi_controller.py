@@ -129,11 +129,26 @@ class TransaksiController:
 
     def fetch_transaksi(self):
         query = """
-            SELECT tr.kd_transaksi, tr.kd_transaksi_bulanan, p.nama AS kd_penyewa, uk.kd_unit,
-            tr.tanggal_transaksi, tr.status_transaksi
+            SELECT
+                tr.kd_transaksi,
+                tr.kd_transaksi_bulanan,
+                tr.kd_penyewa,
+                p.nama AS nama_penyewa,
+                tr.kd_unit,
+                tr.tanggal_mulai,
+                tr.tanggal_selesai,
+                tr.tanggal_transaksi,
+                tr.total_harga,
+                tr.diskon,
+                tr.biaya_tambahan,
+                tr.jumlah_bayar,
+                tr.uang_penyewa,
+                tr.kembalian,
+                tr.status_transaksi
             FROM transaksi tr
             JOIN penyewa p ON tr.kd_penyewa = p.kd_penyewa
             JOIN unit_kamar uk ON tr.kd_unit = uk.kd_unit
+            ORDER BY tr.tanggal_transaksi DESC
         """
         self.db.execute(query)
         result = self.db.fetchall()
@@ -144,14 +159,21 @@ class TransaksiController:
                 kd_transaksi=row["kd_transaksi"],
                 kd_transaksi_bulanan=row["kd_transaksi_bulanan"],
                 kd_penyewa=row["kd_penyewa"],
+                nama_penyewa=row["nama_penyewa"],  # kalau kamu butuh nama langsung
                 kd_unit=row["kd_unit"],
                 tanggal_mulai=row["tanggal_mulai"],
                 tanggal_selesai=row["tanggal_selesai"],
                 tanggal_transaksi=row["tanggal_transaksi"],
                 total_harga=row["total_harga"],
+                diskon=row["diskon"],
+                biaya_tambahan=row["biaya_tambahan"],
+                jumlah_bayar=row["jumlah_bayar"],
+                uang_penyewa=row["uang_penyewa"],
+                kembalian=row["kembalian"],
                 status_transaksi=row["status_transaksi"]
             )
             transaksi_list.append(transaksi)
+
         return transaksi_list
 
     def ambil_no_hp_penyewa(self, kd_penyewa):
@@ -211,7 +233,6 @@ class TransaksiController:
                 messagebox.showwarning("Validasi Tanggal", "Tanggal mulai dan tanggal selesai tidak boleh sama.")
                 return
 
-            # 1. Simpan ke tabel transaksi
             query_transaksi = """
                 INSERT INTO transaksi (
                     kd_transaksi, kd_transaksi_bulanan, kd_penyewa, kd_unit,
@@ -319,32 +340,142 @@ class TransaksiController:
             print("Gagal menambahkan transaksi:", str(e))
 
     def update_transaksi(self, transaksi: Transaksi):
-        query = """
-            UPDATE transaksi
-            SET kd_transaksi_bulanan = %s, kd_penyewa = %s, kd_unit = %s,
-                tanggal_mulai = %s, tanggal_selesai = %s, tanggal_transaksi = %s,
-                total_harga = %s, status_transaksi = %s, diskon = %s, biaya_tambahan = %s,
-                jumlah_bayar = %s, uang_penyewa = %s, kembalian = %s
-            WHERE kd_transaksi = %s
-        """
-        params = (
-            transaksi.kd_transaksi_bulanan,
-            transaksi.kd_penyewa,
-            transaksi.kd_unit,
-            transaksi.tanggal_mulai,
-            transaksi.tanggal_selesai,
-            transaksi.tanggal_transaksi,
-            transaksi.total_harga,
-            transaksi.status_transaksi,
-            transaksi.diskon,
-            transaksi.biaya_tambahan,
-            transaksi.jumlah_bayar,
-            transaksi.uang_penyewa,
-            transaksi.kembalian,
-            transaksi.kd_transaksi
-        )
-        self.db.execute(query, params)
-        self.db.commit()
+        try:
+            from tkinter import messagebox
+            from datetime import datetime
+
+            if transaksi.tanggal_mulai == transaksi.tanggal_selesai:
+                messagebox.showwarning("Validasi Tanggal", "Tanggal mulai dan tanggal selesai tidak boleh sama.")
+                return
+
+            # Ambil unit lama
+            self.db.execute("SELECT kd_unit FROM transaksi WHERE kd_transaksi = %s", (transaksi.kd_transaksi.strip(),))
+            result = self.db.fetchone()
+            unit_lama = result['kd_unit'] if result else None
+
+            # === DEBUG: Tampilkan data update ===
+            print("=== PARAMS UPDATE TRANSAKSI ===")
+            params_update = (
+                transaksi.kd_transaksi_bulanan,
+                transaksi.kd_penyewa,
+                transaksi.kd_unit,
+                transaksi.tanggal_mulai,
+                transaksi.tanggal_selesai,
+                transaksi.tanggal_transaksi,
+                transaksi.total_harga,
+                transaksi.status_transaksi,
+                transaksi.diskon,
+                transaksi.biaya_tambahan,
+                transaksi.jumlah_bayar,
+                transaksi.uang_penyewa,
+                transaksi.kembalian,
+                transaksi.kd_transaksi.strip()
+            )
+            for i, val in enumerate(params_update):
+                print(f"{i + 1}: {val}")
+
+            # Update tabel transaksi
+            query_update = """
+                UPDATE transaksi SET
+                    kd_transaksi_bulanan = %s,
+                    kd_penyewa = %s,
+                    kd_unit = %s,
+                    tanggal_mulai = %s,
+                    tanggal_selesai = %s,
+                    tanggal_transaksi = %s,
+                    total_harga = %s,
+                    status_transaksi = %s,
+                    diskon = %s,
+                    biaya_tambahan = %s,
+                    jumlah_bayar = %s,
+                    uang_penyewa = %s,
+                    kembalian = %s
+                WHERE kd_transaksi = %s
+            """
+            self.db.execute(query_update, params_update)
+            print("Rows affected (transaksi):", self.db.cursor.rowcount)
+            self.db.commit()
+
+            # Update status unit jika unit berubah
+            if unit_lama and unit_lama != transaksi.kd_unit:
+                self.db.execute("UPDATE unit_kamar SET status = 'kosong' WHERE kd_unit = %s", (unit_lama,))
+                self.db.commit()
+
+            self.db.execute("UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s", (transaksi.kd_unit,))
+            self.db.commit()
+
+            self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",
+                            (transaksi.kd_unit, transaksi.kd_penyewa))
+            self.db.commit()
+
+            # Update detail_transaksi
+            query_update_detail = """
+                UPDATE detail_transaksi SET
+                    kd_penyewa = %s,
+                    kd_unit = %s,
+                    kd_transaksi_bulanan = %s,
+                    tanggal_transaksi = %s,
+                    tanggal_mulai = %s,
+                    tanggal_selesai = %s,
+                    total_harga = %s,
+                    diskon = %s,
+                    biaya_tambahan = %s,
+                    jumlah_bayar = %s,
+                    uang_penyewa = %s,
+                    kembalian = %s,
+                    status_transaksi = %s
+                WHERE kd_transaksi = %s
+            """
+            params_detail_update = (
+                transaksi.kd_penyewa,
+                transaksi.kd_unit,
+                transaksi.kd_transaksi_bulanan,
+                transaksi.tanggal_transaksi,
+                transaksi.tanggal_mulai,
+                transaksi.tanggal_selesai,
+                transaksi.total_harga,
+                transaksi.diskon,
+                transaksi.biaya_tambahan,
+                transaksi.jumlah_bayar,
+                transaksi.uang_penyewa,
+                transaksi.kembalian,
+                transaksi.status_transaksi,
+                transaksi.kd_transaksi.strip()
+            )
+            self.db.execute(query_update_detail, params_detail_update)
+            print("Rows affected (detail_transaksi):", self.db.cursor.rowcount)
+            self.db.commit()
+
+            # Kirim WA
+            tanggal_mulai_dt = datetime.strptime(transaksi.tanggal_mulai, "%Y-%m-%d").date()
+            tanggal_selesai_dt = datetime.strptime(transaksi.tanggal_selesai, "%Y-%m-%d").date()
+            tgl_mulai_str = self.format_tanggal_indonesia(tanggal_mulai_dt)
+            tgl_selesai_str = self.format_tanggal_indonesia(tanggal_selesai_dt)
+
+            no_hp = self.ambil_no_hp_penyewa(transaksi.kd_penyewa)
+            nama = self.ambil_nama_penyewa(transaksi.kd_penyewa)
+
+            pesan = (
+                f"Hai, {nama}, data transaksi Anda telah diperbarui.\n"
+                f"Berikut update detailnya:\n\n"
+                f"Kode Transaksi : {transaksi.kd_transaksi}\n"
+                f"Kode Unit : {transaksi.kd_unit}\n"
+                f"Periode : {tgl_mulai_str} s.d {tgl_selesai_str}\n"
+                f"Diskon : Rp {transaksi.diskon}\n"
+                f"Biaya Tambahan : Rp {transaksi.biaya_tambahan}\n"
+                f"Total Bayar : Rp {transaksi.jumlah_bayar:,}\n"
+                f"Status : {transaksi.status_transaksi.capitalize()}\n\n"
+                f"Terima kasih atas kepercayaannya 🙏\n"
+                f"- Management VibeHouse"
+            )
+            self.kirim_wa_wablas(no_hp, pesan)
+
+            print("✅ Transaksi berhasil diperbarui.")
+
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            print("❌ Gagal memperbarui transaksi:", str(e))
 
     def cari_transaksi(self, keyword):
         query = """

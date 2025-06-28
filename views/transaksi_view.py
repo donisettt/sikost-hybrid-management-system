@@ -165,7 +165,7 @@ class TransaksiApp(tk.Frame):
         self.btn_clear = tk.Button(frame_add_clear, text="Bayar", command=self.tambah_transaksi, fg="white", bg="#4CAF50", width=6)
         self.btn_clear.pack(side="left")
 
-        self.btn_update = tk.Button(frame_add_clear, text="Update", command=self.tambah_transaksi, fg="white", bg="#3498db", width=6)
+        self.btn_update = tk.Button(frame_add_clear, text="Update", command=self.update_transaksi, fg="white", bg="#3498db", width=6)
         self.btn_update.pack(side="left", padx=(10, 0))
 
         frame_search = tk.Frame(self, bg=self.bg_color)
@@ -444,50 +444,76 @@ class TransaksiApp(tk.Frame):
             messagebox.showerror("Error", f"Gagal menambahkan transaksi: {e}")
 
     def update_transaksi(self):
-        data = {k: v.get().strip() for k, v in self.entries.items()}
-        if not data['kode_transaksi']:
-            messagebox.showwarning("Peringatan", "Pilih transaksi yang akan diupdate!")
-            return
-        tgl_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
-        tgl_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
-        if tgl_mulai > tgl_selesai:
-            messagebox.showwarning("Tanggal Salah", "Tanggal mulai harus lebih awal dari tanggal selesai.")
-            return
+        try:
+            data = {}
+            for key, entry in self.entries.items():
+                if isinstance(entry, (tk.Entry, ttk.Combobox)):
+                    data[key] = entry.get()
+                elif isinstance(entry, DateEntry):
+                    data[key] = entry.get_date().strftime('%Y-%m-%d')
+                elif isinstance(entry, dict) and "var" in entry:
+                    continue
+                elif isinstance(entry, tk.StringVar):
+                    data[key] = entry.get()
+                else:
+                    data[key] = str(entry)
 
-        transaksi = Transaksi(
-            kd_transaksi=data['kode_transaksi'],
-            kd_penyewa=self.nama_to_kode_penyewa.get(data['penyewa'], ""),
-            kd_unit=data['kode_unit'],
-            tanggal_mulai=data['tanggal_mulai'],
-            tanggal_selesai=data['tanggal_selesai'],
-            tanggal_transaksi=data['tanggal_transaksi'],
-            total_harga=data['total_harga'],
-            status_transaksi=data['status_transaksi'],
-            kd_transaksi_bulanan=self.kd_transaksi_bulanan
-        )
-        self.controller.update_transaksi(transaksi)
-        messagebox.showinfo("Sukses", "Transaksi berhasil diupdate!")
-        self.load_data()
-        self.clear_form()
+            selected_item = self.tree.focus()
+            if selected_item:
+                selected_kode_transaksi = self.tree.item(selected_item)['values'][0]
+                data["kode_transaksi"] = selected_kode_transaksi
 
-    def hapus_transaksi(self):
-        selected_item = self.tree.selection()
-        if not selected_item:
-            messagebox.showwarning("Peringatan", "Pilih transaksi yang ingin dihapus.")
-            return
-        item = self.tree.item(selected_item)
-        kd_transaksi = item["values"][0]
+            if not data["kode_transaksi"]:
+                messagebox.showwarning("Validasi", "Kode transaksi tidak boleh kosong.")
+                return
 
-        confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus transaksi {kd_transaksi}?")
-        if confirm:
+            # Validasi tanggal
             try:
-                self.controller.hapus_transaksi(kd_transaksi)
-                messagebox.showinfo("Sukses", "Transaksi berhasil dihapus.")
-                self.clear_form()
-                self.load_data()
-                self.refresh_penyewa_combobox()
-            except Exception as e:
-                messagebox.showerror("Error", f"Gagal menghapus transaksi: {e}")
+                tanggal_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
+                tanggal_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
+            except:
+                messagebox.showerror("Error", "Tanggal tidak valid.")
+                return
+
+            if tanggal_mulai >= tanggal_selesai:
+                messagebox.showwarning("Validasi", "Tanggal selesai harus setelah tanggal mulai.")
+                return
+
+            uang_penyewa = self.bersihkan_angka(data["uang_penyewa"])
+            jumlah_bayar = self.bersihkan_angka(data["jumlah_bayar"])
+
+            status_transaksi = "lunas" if uang_penyewa >= jumlah_bayar else "belum_lunas"
+
+            transaksi = Transaksi(
+                kd_transaksi=data["kode_transaksi"],
+                kd_transaksi_bulanan=self.kd_transaksi_bulanan,
+                kd_penyewa=self.nama_to_kode_penyewa.get(data["penyewa"]),
+                kd_unit=data["kode_unit"],
+                tanggal_mulai=data["tanggal_mulai"],
+                tanggal_selesai=data["tanggal_selesai"],
+                tanggal_transaksi=data["tanggal_transaksi"],
+                total_harga=self.bersihkan_angka(data["total_harga"]),
+                status_transaksi=status_transaksi,
+                diskon=self.bersihkan_angka(data["diskon"]),
+                biaya_tambahan=self.bersihkan_angka(data["biaya_tambahan"]),
+                jumlah_bayar=jumlah_bayar,
+                uang_penyewa=uang_penyewa,
+                kembalian=self.bersihkan_angka(data["kembalian"])
+            )
+
+            self.controller.update_transaksi(transaksi)
+            self.load_data()
+            for child in self.tree.get_children():
+                if self.tree.item(child)['values'][0] == transaksi.kd_transaksi:
+                    self.tree.selection_set(child)
+                    self.tree.focus(child)
+                    self.on_tree_select(None)
+                    break
+
+            messagebox.showinfo("Sukses", "Transaksi berhasil diperbarui.")
+
+        except Exception as e:
+            messagebox.showerror("Error", f"Gagal mengupdate transaksi: {e}")
 
     def clear_form(self):
         self.set_mode_input()  # 🔓 Kembali ke mode input
@@ -501,6 +527,7 @@ class TransaksiApp(tk.Frame):
 
             elif isinstance(ent, DateEntry):
                 ent.set_date(datetime.date.today())
+                ent.config(state="readonly")
 
             elif isinstance(ent, tk.Entry) or isinstance(ent, tk.Text):
                 ent.config(state='normal')
@@ -508,6 +535,7 @@ class TransaksiApp(tk.Frame):
 
                 if key in ["diskon", "biaya_tambahan"]:
                     ent.insert(0, "0")
+                    ent.config(state="readonly")
 
                 elif key in ["jumlah_bayar", "kembalian"]:
                     ent.insert(0, "0")
@@ -560,6 +588,10 @@ class TransaksiApp(tk.Frame):
 
                 if mapped_key == "penyewa":
                     nama = self.kode_to_nama_penyewa.get(v, v)
+
+                    # ✅ Tambahkan mapping balik agar saat update tidak None
+                    self.nama_to_kode_penyewa[nama] = v
+
                     if isinstance(entry, ttk.Combobox):
                         entry.set(nama)
 
@@ -567,12 +599,13 @@ class TransaksiApp(tk.Frame):
                     entry.config(state='readonly')
                     entry.set(v)
 
-
                 elif isinstance(entry, ttk.Entry):
                     entry.config(state='normal')
                     entry.delete(0, 'end')
                     entry.insert(0, str(v))
-                    if mapped_key != "uang_penyewa":
+
+                    readonly_fields = ["jumlah_bayar", "diskon", "biaya_tambahan", "total_harga", "kembalian"]
+                    if mapped_key in readonly_fields:
                         entry.config(state='readonly')
 
                 elif isinstance(entry, ttk.Combobox):
@@ -583,7 +616,8 @@ class TransaksiApp(tk.Frame):
                         entry.set_date(v)
                     except:
                         pass
-                    entry.config(state='disabled')
+
+                    entry.bind("<Key>", lambda e: "break")
 
                 elif isinstance(entry, tk.StringVar):
                     entry.set(v)
