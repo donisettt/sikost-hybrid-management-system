@@ -8,6 +8,8 @@ class App:
         self.root.title("SIkost VibeHouse")
         self.root.geometry("900x600")
 
+        self.root.protocol("WM_DELETE_WINDOW", self.on_close)
+
         self.login_frame = LoginFrame(self.root, self.show_main_menu)
         self.login_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -20,9 +22,20 @@ class App:
         print("Profile diklik dari sidebar atau navbar.")
 
     def show_login(self):
-        self.dashboard.pack_forget()
+        self.dashboard.destroy()
         self.login_frame = LoginFrame(self.root, self.show_main_menu)
         self.login_frame.pack(fill=tk.BOTH, expand=True)
+
+    def on_close(self):
+        try:
+            if hasattr(self, 'dashboard') and hasattr(self.dashboard, 'after_id'):
+                self.root.after_cancel(self.dashboard.after_id)
+            if hasattr(self, 'login_frame') and hasattr(self.login_frame, 'after_id'):
+                self.root.after_cancel(self.login_frame.after_id)
+        except:
+            pass
+        self.root.destroy()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
