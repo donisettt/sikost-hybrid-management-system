@@ -10,7 +10,6 @@ class PenyewaApp(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
 
-        # Warna & Styling tetap sama
         self.bg_color = "#f0f4f8"
         self.fg_color = "#2c3e50"
         self.entry_bg = "#ffffff"
@@ -45,7 +44,7 @@ class PenyewaApp(tk.Frame):
                                     fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill=tk.X)
 
-        labels = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Kode Unit"]
+        labels = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Status", "Kode Unit"]
         self.entries = {}
 
         def validasi_nomor(event, ent):
@@ -85,6 +84,19 @@ class PenyewaApp(tk.Frame):
                 rb_p.pack(side="left", padx=5)
                 self.entries[key] = self.jk_var
                 self.jk_var.set("Laki-laki")
+
+            elif key == "status":
+                self.status_var = tk.StringVar()
+                status_frame = tk.Frame(frame_input, bg=self.entry_bg)
+                status_frame.grid(row=i, column=1, pady=6, padx=(5, 0), sticky="w")
+
+                rb_a = tk.Radiobutton(status_frame, text="Aktif", variable=self.status_var, value="Aktif", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_n = tk.Radiobutton(status_frame, text="Non-Aktif", variable=self.status_var, value="Non-Aktif", bg=self.entry_bg, fg=self.fg_color, font=("Segoe UI", 10))
+                rb_a.pack(side="left", padx=5)
+                rb_n.pack(side="left", padx=5)
+                self.entries[key] = self.status_var
+                self.status_var.set("Aktif")
+
             else:
                 ent = ttk.Entry(frame_input, width=40)
                 ent.grid(row=i, column=1, pady=6, padx=(5, 0))
@@ -148,10 +160,10 @@ class PenyewaApp(tk.Frame):
         table_frame = tk.Frame(self, bg=self.bg_color)
         table_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
 
-        columns = ("kd_penyewa", "nama", "jenis_kelamin", "no_hp", "alamat", "kd_unit")
+        columns = ("kd_penyewa", "nama", "jenis_kelamin", "no_hp", "alamat", "status", "kd_unit")
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
 
-        header_names = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Kode Unit"]
+        header_names = ["Kode Penyewa", "Nama", "Jenis Kelamin", "No HP", "Alamat", "Status", "Kode Unit"]
         for col, header in zip(columns, header_names):
             self.tree.heading(col, text=header)
             self.tree.column(col, width=120, anchor='center')
@@ -177,6 +189,7 @@ class PenyewaApp(tk.Frame):
                 penyewa.jenis_kelamin,
                 penyewa.no_hp,
                 penyewa.alamat,
+                penyewa.status,
                 penyewa.kd_unit
             ))
 
@@ -186,6 +199,7 @@ class PenyewaApp(tk.Frame):
         jk = self.entries['jenis_kelamin'].get()
         no_hp = self.entries['no_hp'].get().strip()
         alamat = self.entries['alamat'].get().strip()
+        status = self.entries['status'].get()
         kd_unit = self.entries['kode_unit'].get().strip()
 
         if not kd or not nama:
@@ -194,7 +208,7 @@ class PenyewaApp(tk.Frame):
         elif not jk:
             messagebox.showwarning("Peringatan", "Pilih jenis kelamin penyewa!")
 
-        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
+        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, status, kd_unit)
         self.controller.tambah_penyewa(penyewa)
         messagebox.showinfo("Sukses", f"Berhasil menambahkan {nama} sebagai penyewa.")
         self.load_data()
@@ -206,13 +220,14 @@ class PenyewaApp(tk.Frame):
         jk = self.entries['jenis_kelamin'].get()
         no_hp = self.entries['no_hp'].get().strip()
         alamat = self.entries['alamat'].get().strip()
+        status = self.entries['status'].get()
         kd_unit = self.entries['kode_unit'].get().strip()
 
         if not kd:
             messagebox.showwarning("Peringatan", "Pilih penyewa yang akan diupdate!")
             return
 
-        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, kd_unit)
+        penyewa = Penyewa(kd, nama, jk, no_hp, alamat, status, kd_unit)
         self.controller.update_penyewa(penyewa)
         messagebox.showinfo("Sukses", f"Penyewa {nama} berhasil diupdate.")
         self.load_data()
@@ -293,8 +308,10 @@ class PenyewaApp(tk.Frame):
             self.entries['alamat'].delete(0, 'end')
             self.entries['alamat'].insert(0, values[4])
 
-            self.entries['kode_unit'].config(state='readonly')  # Enable saat edit
-            self.entries['kode_unit'].set(values[5])
+            self.entries["status"].set(values[5])
+
+            self.entries['kode_unit'].config(state='readonly')
+            self.entries['kode_unit'].set(values[6])
 
     def cari_penyewa(self, event):
         keyword = self.entry_search.get().strip()
@@ -313,6 +330,7 @@ class PenyewaApp(tk.Frame):
                 penyewa.jenis_kelamin,
                 penyewa.no_hp,
                 penyewa.alamat,
+                penyewa.status,
                 penyewa.kd_unit
             ))
 

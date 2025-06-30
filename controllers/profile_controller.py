@@ -18,7 +18,7 @@ class ProfileController:
             query.execute("""
                 UPDATE users SET nama = %s, username = %s
                 WHERE kode_user = %s
-            """, (nama, username, kode_user))  # ✅ 3 parameter dikirim
+            """, (nama, username, kode_user))
             self.db.commit()
             return query.rowcount > 0
         except Exception as e:
@@ -30,7 +30,7 @@ class ProfileController:
         query.execute("SELECT password FROM users WHERE kode_user = %s", (self.kode_user,))
         user = query.fetchone()
 
-        if user and user["password"] == old_password:  # Bisa diganti dengan hash comparison
+        if user and user["password"] == old_password:
             query.execute("""
                 UPDATE users SET password = %s WHERE kode_user = %s
             """, (new_password, self.kode_user))

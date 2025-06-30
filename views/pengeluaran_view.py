@@ -45,7 +45,7 @@ class PengeluaranApp(tk.Frame):
         frame_input = tk.LabelFrame(self, text="Form Pengeluaran", font=("Segoe UI", 12, "bold"), bg=self.entry_bg, fg=self.fg_color, padx=20, pady=20)
         frame_input.pack(padx=20, pady=(0, 10), fill="x")
 
-        labels = ["Kode Pengeluaran", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh", "Bukti"]
+        labels = ["Kode Pengeluaran", "Tanggal", "Kategori", "Deskripsi", "Jumlah Harga", "Dibuat Oleh", "Bukti"]
         self.entries = {}
         kategori_display = ["Pilih Kategori", "Peralatan", "Kebersihan", "Keamanan", "Internet", "Gaji", "Darurat"]
 
@@ -106,10 +106,10 @@ class PengeluaranApp(tk.Frame):
         self.btn_hapus.grid(row=0, column=3, padx=5)
         self.btn_clear.grid(row=0, column=4, padx=5)
 
-        self.tree = ttk.Treeview(self, columns=("kd", "tgl", "kategori", "desc", "jumlah", "by", "bukti"), show='headings')
+        self.tree = ttk.Treeview(self, columns=("kd", "tgl", "kategori", "desc", "jumlah_harga", "by", "bukti"), show='headings')
         self.tree.pack(padx=20, pady=(0, 10), fill="both", expand=True)
 
-        headings = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh", "Bukti"]
+        headings = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah Harga", "Dibuat Oleh", "Bukti"]
         for i, col in enumerate(self.tree["columns"]):
             self.tree.heading(col, text=headings[i])
             self.tree.column(col, width=100, anchor="center")
@@ -152,11 +152,11 @@ class PengeluaranApp(tk.Frame):
     def tambah_pengeluaran(self):
         data = {key: widget.get() if isinstance(widget, (tk.Entry, ttk.Combobox, DateEntry)) else widget.cget("text")
                 for key, widget in self.entries.items()}
-        if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
+        if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah_harga'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
             messagebox.showwarning("Peringatan", "Semua kolom wajib diisi dan kategori harus dipilih!")
             return
         try:
-            data['jumlah'] = int(data['jumlah'])
+            data['jumlah_harga'] = int(data['jumlah_harga'])
         except ValueError:
             messagebox.showwarning("Peringatan", "Jumlah harus berupa angka!")
             return
@@ -172,16 +172,16 @@ class PengeluaranApp(tk.Frame):
         data = {key: widget.get() if isinstance(widget, (tk.Entry, ttk.Combobox, DateEntry)) else widget.cget("text")
                 for key, widget in self.entries.items()}
 
-        if not data['kd_pengeluaran']:
+        if not data.get('kode_pengeluaran'):
             messagebox.showwarning("Peringatan", "Pilih data yang ingin diupdate!")
             return
 
-        if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
+        if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah_harga'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
             messagebox.showwarning("Peringatan", "Semua kolom wajib diisi dan kategori harus dipilih!")
             return
 
         try:
-            data['jumlah'] = int(data['jumlah'])
+            data['jumlah_harga'] = int(data['jumlah_harga'])
         except ValueError:
             messagebox.showwarning("Peringatan", "Jumlah harus berupa angka!")
             return
@@ -223,7 +223,7 @@ class PengeluaranApp(tk.Frame):
                 pengeluaran.tanggal,
                 pengeluaran.kategori,
                 pengeluaran.deskripsi,
-                pengeluaran.jumlah,
+                pengeluaran.jumlah_harga,
                 pengeluaran.dibuat_oleh,
                 pengeluaran.bukti
             ))
@@ -232,7 +232,7 @@ class PengeluaranApp(tk.Frame):
         selected = self.tree.focus()
         if selected:
             values = self.tree.item(selected, 'values')
-            keys = ['kode_pengeluaran', 'tanggal', 'kategori', 'deskripsi', 'jumlah', 'dibuat_oleh', 'bukti']
+            keys = ['kode_pengeluaran', 'tanggal', 'kategori', 'deskripsi', 'jumlah_harga', 'dibuat_oleh', 'bukti']
             for key, value in zip(keys, values):
                 widget = self.entries[key]
                 if isinstance(widget, (tk.Entry, DateEntry)):

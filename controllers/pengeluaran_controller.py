@@ -1,6 +1,5 @@
 from database.connection import Database
 from models.pengeluaran import Pengeluaran
-from datetime import datetime
 
 class PengeluaranController:
     def __init__(self):
@@ -18,7 +17,7 @@ class PengeluaranController:
                 tanggal=row["tanggal"],
                 kategori=row["kategori"],
                 deskripsi=row["deskripsi"],
-                jumlah=row["jumlah"],
+                jumlah_harga=row["jumlah_harga"],
                 dibuat_oleh=row["dibuat_oleh"],
                 bukti=row["bukti"]
             )
@@ -27,7 +26,7 @@ class PengeluaranController:
 
     def tambah_pengeluaran(self, pengeluaran: Pengeluaran):
         query = """
-            INSERT INTO pengeluaran (kd_pengeluaran, tanggal, kategori, deskripsi, jumlah,
+            INSERT INTO pengeluaran (kd_pengeluaran, tanggal, kategori, deskripsi, jumlah_harga,
             dibuat_oleh, bukti) VALUES (%s, %s, %s, %s, %s, %s, %s)
         """
         params = (
@@ -35,7 +34,7 @@ class PengeluaranController:
             pengeluaran.tanggal,
             pengeluaran.kategori,
             pengeluaran.deskripsi,
-            pengeluaran.jumlah,
+            pengeluaran.jumlah_harga,
             pengeluaran.dibuat_oleh,
             pengeluaran.bukti
         )
@@ -44,15 +43,15 @@ class PengeluaranController:
 
     def update_pengeluaran(self, pengeluaran: Pengeluaran):
         query = """
-            UPDATE penyewa
-            SET tanggal = %s, kategori = %s, deskripsi = %s, jumlah = %s, dibuat_oleh = %s, bukti = %s
+            UPDATE pengeluaran
+            SET tanggal = %s, kategori = %s, deskripsi = %s, jumlah_harga = %s, dibuat_oleh = %s, bukti = %s
             WHERE kd_pengeluaran = %s
         """
         params = (
             pengeluaran.tanggal,
             pengeluaran.kategori,
             pengeluaran.deskripsi,
-            pengeluaran.jumlah,
+            pengeluaran.jumlah_harga,
             pengeluaran.dibuat_oleh,
             pengeluaran.bukti,
             pengeluaran.kd_pengeluaran
@@ -82,7 +81,7 @@ class PengeluaranController:
                 tanggal=row["tanggal"],
                 kategori=row["kategori"],
                 deskripsi=row["deskripsi"],
-                jumlah=row["jumlah"],
+                jumlah_harga=row["jumlah_harga"],
                 dibuat_oleh=row["dibuat_oleh"],
                 bukti=row["bukti"]
             )

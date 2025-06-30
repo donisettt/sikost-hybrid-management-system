@@ -32,7 +32,7 @@ class TransaksiController:
         return [row["kd_unit"] for row in result]
 
     def fetch_kode_penyewa(self):
-        query = "SELECT kd_penyewa, nama FROM penyewa"
+        query = "SELECT kd_penyewa, nama FROM penyewa WHERE status = 'Aktif'"
         self.db.execute(query)
         results = self.db.fetchall()
         return [{"kd_penyewa": r["kd_penyewa"], "nama": r["nama"]} for r in results]
@@ -53,8 +53,8 @@ class TransaksiController:
         self.db.execute(query, (kd_transaksi,))
         result = self.db.fetchone()
 
-        print("Result Type:", type(result))  # Debug: Tipe data hasil query
-        print("Result Data:", result)  # Debug: Isi hasil query
+        print("Result Type:", type(result))
+        print("Result Data:", result)
 
         return result if result else {}
 
@@ -260,26 +260,21 @@ class TransaksiController:
             self.db.execute(query_transaksi, params_transaksi)
             self.db.commit()
 
-            # 🔁 Cek apakah penyewa sudah pernah punya unit sebelumnya
             self.db.execute("SELECT kd_unit FROM penyewa WHERE kd_penyewa = %s", (transaksi.kd_penyewa,))
             result = self.db.fetchone()
             unit_lama = result['kd_unit'] if result and result['kd_unit'] else None
 
-            # Jika unit lama tidak sama dengan unit baru → set status unit lama jadi 'kosong'
             if unit_lama and unit_lama != transaksi.kd_unit:
                 self.db.execute("UPDATE unit_kamar SET status = 'kosong' WHERE kd_unit = %s", (unit_lama,))
                 self.db.commit()
 
-            # Update unit baru jadi 'terisi'
             self.db.execute("UPDATE unit_kamar SET status = 'terisi' WHERE kd_unit = %s", (transaksi.kd_unit,))
             self.db.commit()
 
-            # Update kolom kd_unit di penyewa
             self.db.execute("UPDATE penyewa SET kd_unit = %s WHERE kd_penyewa = %s",
                             (transaksi.kd_unit, transaksi.kd_penyewa))
             self.db.commit()
 
-            # Simpan ke tabel detail_transaksi
             kd_detail_transaksi = self.generate_kd_detail_transaksi()
             query_detail = """
                 INSERT INTO detail_transaksi (

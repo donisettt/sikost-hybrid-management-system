@@ -25,6 +25,9 @@ class LaporanApp(tk.Frame):
         self.kategori_bln_var = tk.StringVar()
         self._buat_form_laporan_bulanan(frame_laporan)
 
+        self.treeview_frame = tk.Frame(self, bg="white")
+        self.treeview_frame.pack(fill="both", expand=True, padx=10, pady=(5, 10))
+
     def _buat_form_laporan_bulanan(self, parent):
         frame = tk.LabelFrame(parent, text="Laporan Bulanan", font=("Segoe UI", 10, "bold"), padx=10, pady=10, bg="white")
         frame.pack(side="left", padx=10)
@@ -59,7 +62,7 @@ class LaporanApp(tk.Frame):
         kategori_cb = ttk.Combobox(frame, textvariable=self.kategori_periode_var, values=["Pemasukan", "Pengeluaran"], state="readonly", width=18)
         kategori_cb.grid(row=2, column=1, pady=5)
 
-        tk.Button(frame, text="Buat Laporan", bg="green", fg="white", command="").grid(row=3, columnspan=2, pady=10, padx=(170, 0))
+        tk.Button(frame, text="Buat Laporan", bg="green", fg="white", command=self.export_laporan_periode).grid(row=3, columnspan=2, pady=10, padx=(170, 0))
 
     def _get_bulan_list(self):
         return ["Januari", "Februari", "Maret", "April", "Mei", "Juni",
@@ -68,6 +71,29 @@ class LaporanApp(tk.Frame):
     def _get_tahun_list(self):
         return [str(year) for year in range(2020, datetime.now().year + 1)]
 
+    # def update_treeview(self, data, kategori):
+    #     for widget in self.treeview_frame.winfo_children():
+    #         widget.destroy()
+    #
+    #     if kategori == "Pengeluaran":
+    #         columns = ["kd_pengeluaran", "tanggal", "kategori", "deskripsi", "jumlah", "dibuat_oleh"]
+    #         headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
+    #     else:
+    #         columns = ["kd_transaksi", "penyewa", "unit", "tanggal", "total", "diskon", "tambahan", "bayar", "uang", "kembali", "status"]
+    #         headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali", "Status"]
+    #
+    #     tree = ttk.Treeview(self.treeview_frame, columns=columns, show="headings")
+    #     for col, header in zip(columns, headers):
+    #         tree.heading(col, text=header)
+    #         tree.column(col, anchor="center", width=100)
+    #
+    #     for row in data:
+    #         tree.insert("", "end", values=row)
+    #
+    #     vsb = ttk.Scrollbar(self.treeview_frame, orient="vertical", command=tree.yview)
+    #     tree.configure(yscrollcommand=vsb.set)
+    #     vsb.pack(side="right", fill="y")
+    #     tree.pack(fill="both", expand=True)
 
     def export_laporan_bulanan(self):
         bulan = self.bulan_var.get()
@@ -83,6 +109,8 @@ class LaporanApp(tk.Frame):
             messagebox.showinfo("Info", "Tidak ada data untuk laporan.")
             return
 
+        # self.update_treeview(data, kategori)
+
         folder_path = filedialog.askdirectory(title="Pilih Folder untuk Simpan Laporan")
         if not folder_path:
             messagebox.showinfo("Batal", "Export laporan dibatalkan.")
@@ -95,14 +123,49 @@ class LaporanApp(tk.Frame):
         if kategori == "Pengeluaran":
             headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
         else:
-            headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali",
-                       "Status"]
+            headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali", "Status"]
 
-        print("==== DEBUG DATA YANG DIEXPORT ====")
-        for row in data:
-            print(row)
-
-        self.controller.export_excel_pemasukan(data, headers, full_path_excel)
+        self.controller.export_excel(data, headers, full_path_excel)
         messagebox.showinfo("Sukses", f"Laporan berhasil diekspor ke:\n{full_path_excel}")
         pesan = f"Laporan {kategori} bulan {bulan} tahun {tahun} telah diekspor.\nFile: {filename_excel}"
-        self.controller.kirim_wa_admin(pesan)
+        self.controller.kirim_wa_admin(pesan, full_path_excel)
+
+    def export_laporan_periode(self):
+        tgl_dari = self.tgl_dari_var.get()
+        tgl_sampai = self.tgl_sampai_var.get()
+        kategori = self.kategori_periode_var.get()
+
+        if not tgl_dari or not tgl_sampai or not kategori:
+            messagebox.showwarning("Peringatan", "Semua field harus diisi!")
+            return
+
+        # Ambil data sesuai kategori
+        if kategori == "Pengeluaran":
+            data = self.controller.get_pengeluaran_periode(tgl_dari, tgl_sampai)
+            headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
+        elif kategori == "Pemasukan":
+            data = self.controller.get_pemasukan_periode(tgl_dari, tgl_sampai)
+            headers = ["Kode", "Penyewa", "Unit", "Tanggal", "Total", "Diskon", "Tambahan", "Bayar", "Uang", "Kembali",
+                       "Status"]
+        else:
+            messagebox.showwarning("Kategori Tidak Dikenali", "Kategori laporan tidak valid.")
+            return
+
+        if not data:
+            messagebox.showinfo("Info", f"Tidak ada data {kategori.lower()} pada periode tersebut.")
+            return
+
+        folder_path = filedialog.askdirectory(title="Pilih Folder untuk Simpan Laporan")
+        if not folder_path:
+            messagebox.showinfo("Batal", "Export laporan dibatalkan.")
+            return
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename_excel = f"laporan_{kategori.lower()}_periode_{timestamp}.xlsx"
+        full_path_excel = os.path.join(folder_path, filename_excel)
+
+        self.controller.export_excel(data, headers, full_path_excel)
+        messagebox.showinfo("Sukses", f"Laporan berhasil diekspor ke:\n{full_path_excel}")
+
+        pesan = f"Laporan {kategori.lower()} periode {tgl_dari} s.d. {tgl_sampai} telah diekspor.\nFile: {filename_excel}"
+        self.controller.kirim_wa_admin(pesan, full_path_excel)

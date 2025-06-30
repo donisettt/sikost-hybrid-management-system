@@ -6,7 +6,7 @@ class DashboardController:
         self.db = Database()
 
     def get_jumlah_penyewa(self):
-        query = "SELECT COUNT(*) AS total FROM penyewa"
+        query = "SELECT COUNT(*) AS total FROM penyewa WHERE status = 'Aktif'"
         self.db.execute(query)
         return self.db.fetchone()["total"]
 
@@ -24,7 +24,7 @@ class DashboardController:
         return self.db.fetchone()["total"]
 
     def get_total_pengeluaran(self):
-        self.db.execute("SELECT SUM(jumlah) AS total FROM pengeluaran")
+        self.db.execute("SELECT SUM(jumlah_harga) AS total FROM pengeluaran")
         result = self.db.fetchone()["total"]
         return result if result else 0
 
@@ -45,6 +45,10 @@ class DashboardController:
 
     def get_transaksi_belum_lunas(self):
         self.db.execute("SELECT COUNT(*) AS total FROM transaksi WHERE status_transaksi != 'Lunas'")
+        return self.db.fetchone()["total"]
+
+    def get_kamar_kosong(self):
+        self.db.execute("SELECT COUNT(*) AS total FROM unit_kamar WHERE status != 'terisi'")
         return self.db.fetchone()["total"]
 
     def get_transaksi_hari_ini(self):

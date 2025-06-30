@@ -362,7 +362,7 @@ class TransaksiApp(tk.Frame):
             for t in transaksi_list:
                 self.tree.insert('', 'end', values=(
                     t.kd_transaksi,
-                    self.kode_to_nama_penyewa.get(t.kd_penyewa, t.kd_penyewa),  # tampilkan nama
+                    self.kode_to_nama_penyewa.get(t.kd_penyewa, t.kd_penyewa),
                     t.kd_unit,
                     t.tanggal_transaksi,
                     t.status_transaksi
@@ -384,7 +384,7 @@ class TransaksiApp(tk.Frame):
                 elif isinstance(entry, tk.StringVar):
                     data[key] = entry.get()
                 else:
-                    data[key] = str(entry)  # Fallback darurat
+                    data[key] = str(entry)
             except Exception as e:
                 messagebox.showerror("Error", f"Terjadi kesalahan saat mengambil data input: {e}")
                 return
@@ -588,8 +588,6 @@ class TransaksiApp(tk.Frame):
 
                 if mapped_key == "penyewa":
                     nama = self.kode_to_nama_penyewa.get(v, v)
-
-                    # ✅ Tambahkan mapping balik agar saat update tidak None
                     self.nama_to_kode_penyewa[nama] = v
 
                     if isinstance(entry, ttk.Combobox):

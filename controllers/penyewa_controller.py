@@ -28,15 +28,21 @@ class PenyewaController:
                 jenis_kelamin=row["jenis_kelamin"],
                 no_hp=row["no_hp"],
                 alamat=row["alamat"],
+                status=row["status"],
                 kd_unit=row["kd_unit"]
             )
             penyewa_list.append(penyewa)
         return penyewa_list
 
     def tambah_penyewa(self, penyewa: Penyewa):
+        penyewa.status = penyewa.status.strip()
+
+        if penyewa.status not in ["Aktif", "Non-Aktif"]:
+            raise ValueError("Status penyewa tidak valid.")
+
         query = """
-            INSERT INTO penyewa (kd_penyewa, nama, jenis_kelamin, no_hp, alamat, kd_unit)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO penyewa (kd_penyewa, nama, jenis_kelamin, no_hp, alamat, status, kd_unit)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """
         params = (
             penyewa.kd_penyewa,
@@ -44,6 +50,7 @@ class PenyewaController:
             penyewa.jenis_kelamin,
             penyewa.no_hp,
             penyewa.alamat,
+            penyewa.status,
             penyewa.kd_unit
         )
         self.db.execute(query, params)
@@ -56,18 +63,15 @@ class PenyewaController:
         self.db.commit()
 
     def update_penyewa(self, penyewa: Penyewa):
-        # Ambil kd_unit lama sebelum diupdate
         query_get_old_kd_unit = "SELECT kd_unit FROM penyewa WHERE kd_penyewa = %s"
         self.db.execute(query_get_old_kd_unit, (penyewa.kd_penyewa,))
         result = self.db.fetchone()
 
         if result:
             old_kd_unit = result["kd_unit"]
-
-            # Update data penyewa
             query = """
                 UPDATE penyewa
-                SET nama = %s, jenis_kelamin = %s, no_hp = %s, alamat = %s, kd_unit = %s
+                SET nama = %s, jenis_kelamin = %s, no_hp = %s, alamat = %s, status = %s, kd_unit = %s
                 WHERE kd_penyewa = %s
             """
             params = (
@@ -75,6 +79,7 @@ class PenyewaController:
                 penyewa.jenis_kelamin,
                 penyewa.no_hp,
                 penyewa.alamat,
+                penyewa.status,
                 penyewa.kd_unit,
                 penyewa.kd_penyewa
             )
@@ -116,6 +121,7 @@ class PenyewaController:
                 jenis_kelamin=row["jenis_kelamin"],
                 no_hp=row["no_hp"],
                 alamat=row["alamat"],
+                status=row["status"],
                 kd_unit=row["kd_unit"]
             )
             penyewa_list.append(penyewa)
@@ -123,7 +129,7 @@ class PenyewaController:
 
     def get_all_penyewa(self):
         query = self.db.cursor
-        query.execute("SELECT kd_penyewa, nama, jenis_kelamin, no_hp, alamat, kd_unit FROM penyewa")
+        query.execute("SELECT kd_penyewa, nama, jenis_kelamin, no_hp, alamat, status, kd_unit FROM penyewa")
         data = query.fetchall()
         return [dict(row) for row in data]
 
