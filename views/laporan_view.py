@@ -139,7 +139,6 @@ class LaporanApp(tk.Frame):
             messagebox.showwarning("Peringatan", "Semua field harus diisi!")
             return
 
-        # Ambil data sesuai kategori
         if kategori == "Pengeluaran":
             data = self.controller.get_pengeluaran_periode(tgl_dari, tgl_sampai)
             headers = ["Kode", "Tanggal", "Kategori", "Deskripsi", "Jumlah", "Dibuat Oleh"]
