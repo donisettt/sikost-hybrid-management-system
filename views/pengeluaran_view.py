@@ -177,7 +177,7 @@ class PengeluaranApp(tk.Frame):
             return
 
         if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah_harga'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
-            messagebox.showwarning("Peringatan", "Semua kolom wajib diisi dan kategori harus dipilih!")
+            messagebox.showwarning("Peringatan", "Pilih data pengeluaran yang ingin diupdate!")
             return
 
         try:
@@ -196,8 +196,11 @@ class PengeluaranApp(tk.Frame):
     def hapus_pengeluaran(self):
         kd = self.entries['kode_pengeluaran'].get().strip()
         kategori = self.entries['kategori'].get().strip()
-        if not kd:
-            messagebox.showwarning("Peringatan", "Pilih pengeluaran yang akan dihapus!")
+        data = {key: widget.get() if isinstance(widget, (tk.Entry, ttk.Combobox, DateEntry)) else widget.cget("text")
+                for key, widget in self.entries.items()}
+
+        if not data['tanggal'] or data['kategori'] == "Pilih Kategori" or not data['deskripsi'] or not data['jumlah_harga'] or not data['dibuat_oleh'] or data['bukti'] == "Belum ada file":
+            messagebox.showwarning("Peringatan", "Pilih data yang akan dihapus!")
             return
 
         confirm = messagebox.askyesno("Konfirmasi", f"Yakin ingin menghapus pengeluaran {kategori}?")

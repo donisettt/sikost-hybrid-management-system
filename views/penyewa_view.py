@@ -223,7 +223,7 @@ class PenyewaApp(tk.Frame):
         status = self.entries['status'].get()
         kd_unit = self.entries['kode_unit'].get().strip()
 
-        if not kd:
+        if not kd or not nama:
             messagebox.showwarning("Peringatan", "Pilih penyewa yang akan diupdate!")
             return
 

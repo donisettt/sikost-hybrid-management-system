@@ -176,7 +176,7 @@ class UnitKamarApp(tk.Frame):
         status = self.status_var.get()
 
         if not kd_unit or not kd_kamar_full:
-            messagebox.showwarning("Peringatan", "Semua field harus diisi.")
+            messagebox.showwarning("Peringatan", "Pilih data yang akan di ubah!.")
             return
 
         kd_kamar = kd_kamar_full.split("|")[0].strip()

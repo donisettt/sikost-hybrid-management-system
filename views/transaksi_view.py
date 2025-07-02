@@ -463,20 +463,8 @@ class TransaksiApp(tk.Frame):
                 selected_kode_transaksi = self.tree.item(selected_item)['values'][0]
                 data["kode_transaksi"] = selected_kode_transaksi
 
-            if not data["kode_transaksi"]:
-                messagebox.showwarning("Validasi", "Kode transaksi tidak boleh kosong.")
-                return
-
-            # Validasi tanggal
-            try:
-                tanggal_mulai = datetime.datetime.strptime(data["tanggal_mulai"], "%Y-%m-%d").date()
-                tanggal_selesai = datetime.datetime.strptime(data["tanggal_selesai"], "%Y-%m-%d").date()
-            except:
-                messagebox.showerror("Error", "Tanggal tidak valid.")
-                return
-
-            if tanggal_mulai >= tanggal_selesai:
-                messagebox.showwarning("Validasi", "Tanggal selesai harus setelah tanggal mulai.")
+            if data["penyewa"] == "Pilih penyewa" or data["kode_unit"] == "Pilih kode unit":
+                messagebox.showwarning("Peringatan", "Pilih data penyewa dan kode unit.")
                 return
 
             uang_penyewa = self.bersihkan_angka(data["uang_penyewa"])

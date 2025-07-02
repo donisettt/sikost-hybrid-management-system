@@ -65,6 +65,10 @@ class KamarController:
         self.db.execute(query, (kd_kamar,))
         self.db.commit()
 
+        delete_unit_kamar_query = "DELETE FROM unit_kamar WHERE kd_kamar = %s"
+        self.db.execute(delete_unit_kamar_query, (kd_kamar,))
+        self.db.commit()
+
     def cari_kamar(self, keyword):
         query = """
         SELECT * FROM kamar
