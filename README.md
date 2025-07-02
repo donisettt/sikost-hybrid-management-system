@@ -1,30 +1,34 @@
-## Project Sistem Informasi Kost (SIKOST) Berbasis Desktop
+# 💡 Sistem Informasi Kost (SIKOST) VibeHouse - Aplikasi Desktop
 
-Sistem Informasi Kost (SIKOST) adalah aplikasi berbasis desktop menggunakan bahasa pemrograman Python (TKinter GUI) dan MySQL yang digunakan untuk mengelola data kost secara efektif dan efisien. Aplikasi ini dirancang untuk membantu pengelola kost dalam melakukan pencatatan data kamar, penyewa, transaksi, dan laporan dengan mudah.
+**SIKOST VibeHouse** adalah aplikasi berbasis desktop yang dikembangkan menggunakan Python (Tkinter) dan MySQL untuk membantu pengelola kost dalam mencatat dan mengelola data penyewa, transaksi, kamar, hingga laporan keuangan dengan lebih efisien.
 
-Fitur utama sementara meliputi:
+---
+
+## ✨ Fitur Utama
+
 - Manajemen data kamar kost
 - Manajemen data penyewa
 - Manajemen user
-- Transaksi (Transaksi bulanan, detail transaksi, pengeluaran)
-- Laporan
+- Transaksi bulanan & detail transaksi
+- Pengeluaran harian/bulanan
+- Laporan keuangan (pemasukan & pengeluaran)
 - Generate struk barcode
-- Integrasi notifikasi wablas
-- Penggunaan metode OOP, MVC dan modular untuk pengembangan aplikasi
+- Integrasi notifikasi WhatsApp via Wablas
+- Arsitektur OOP, MVC, dan modular
 
 ---
 
-## Teknologi yang Digunakan
-- Bahasa Pemrograman: Python (Tkinter untuk GUI)
-- Database: MySQL
-- Koneksi Database: mysql-connector
-- Metode Pengembangan: Agile
+## ⚙️ Teknologi yang Digunakan
+
+- **Bahasa Pemrograman:** Python
+- **GUI:** Tkinter
+- **Database:** MySQL
+- **Connector:** mysql-connector-python
+- **Pengembangan:** Agile Methodology
 
 ---
 
-## Kelompok 3 - Mata Kuliah Pemrograman Berorientasi Objek 2 (PBO-2)
-
-Anggota kelompok:
+## 👥 Kelompok 3 - PBO 2
 
 | Nama                                | Jobdesk                             |
 |-------------------------------------|-------------------------------------|
@@ -32,11 +36,38 @@ Anggota kelompok:
 | Aisah Gandari Rahmah - 23552011127  | UI/UX Designer & Database Architect |
 | Lutfi Mahesa Abdul K - 23552011147  | UI/UX Designer & Database Architect |
 | Ariyan Kusharthanto - 23552011168   | Project Administrator & Research Analyst |
-| Indri Rohmawati  -  23552011137     | Project Administrator & Research Analyst                                    |
+| Indri Rohmawati - 23552011137       | Project Administrator & Research Analyst |
 
-## Implementasi Hasil Project
+---
 
-![page_1](image/page_1.png)  
-![page_2](image/page_2.png)  
-![page_3](image/page_3.png)
-![page_4](image/page_4.png)
+## 🖼️ Implementasi Tampilan Aplikasi
+
+| Login Page | Dashboard | Manajemen Penyewa | Laporan |
+|------------|-----------|-------------------|---------|
+| ![page_1](image/page_1.png) | ![page_2](image/page_2.png) | ![page_3](image/page_3.png) | ![page_4](image/page_4.png) |
+
+---
+
+## 📦 Instalasi Aplikasi (Versi .exe)
+
+Aplikasi **SIKOST VibeHouse** juga tersedia dalam bentuk **installer `.exe`**, agar pengguna Windows bisa langsung menggunakan tanpa perlu menginstal Python secara manual.
+
+### 🔧 Langkah Instalasi:
+
+1. Jalankan file: `SIKOST-VibeHouse-Installer.exe`
+2. Ikuti wizard instalasi yang muncul.
+3. Setelah instalasi selesai, shortcut aplikasi akan otomatis tersedia di:
+   - **Start Menu**
+   - **Desktop** (jika opsi shortcut dicentang)
+
+### 📂 Lokasi Instalasi Default:
+C:\Program Files\SIKOST VibeHouse\
+
+## 📄 Lisensi
+
+Aplikasi ini dikembangkan untuk keperluan pembelajaran dan project mata kuliah **PBO-2**. File lisensi dapat dilihat pada `setup/license.txt`.
+
+---
+
+Terima kasih telah menggunakan **SIKOST VibeHouse**! 🎉  
+Feel free to fork, star, dan explore ✨
