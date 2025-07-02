@@ -42,9 +42,7 @@
 
 ## 🖼️ Implementasi Tampilan Aplikasi
 
-| Login Page | Dashboard | Manajemen Penyewa | Laporan |
-|------------|-----------|-------------------|---------|
-| ![page_1](image/page_1.png) | ![page_2](image/page_2.png) | ![page_3](image/page_3.png) | ![page_4](image/page_4.png) |
+![page_1](image/page_1.png) | ![page_2](image/page_2.png) | ![page_3](image/page_3.png)
 
 ---
 
