@@ -277,16 +277,21 @@ class PenyewaApp(tk.Frame):
 
     def clear_form(self):
         self.entries['kode_penyewa'].config(state='normal')
+
         for key, widget in self.entries.items():
-            if isinstance(widget, ttk.Combobox):
-                widget.set('')
-            elif isinstance(widget, tk.StringVar):
-                widget.set('')
-            else:
-                widget.delete(0, 'end')
+            if key in ['nama', 'no_hp', 'alamat']:
+                if isinstance(widget, ttk.Entry):
+                    widget.delete(0, 'end')
+
+            elif key == 'kode_unit':
+                widget.set('Silahkan pilih kode unit')
+                widget.config(state='disabled')
+
+            elif key == 'kode_penyewa':
+                continue
+
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
-        self.entries['kode_unit'].config(state='disabled')  # Disable saat tambah
 
     def on_tree_select(self, event):
         selected = self.tree.focus()

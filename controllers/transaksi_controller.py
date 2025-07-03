@@ -189,7 +189,7 @@ class TransaksiController:
         return hasil["nama"] if hasil else None
 
     def kirim_wa_wablas(self, no_hp: str, pesan: str):
-        token = "FxOEioHDnpQ3liM6zjIRcNlSGSVh1dF80jCY738OrubljoZovkRProM"
+        token = "TZn6uK6JZPwrjFctPwf3DW0Yg6SOIB6iEHmcrnzEMYmGc0tm5WqjuyN"
         url = "https://sby.wablas.com/api/send-message"
 
         headers = {

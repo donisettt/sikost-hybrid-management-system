@@ -335,8 +335,18 @@ class TransaksiApp(tk.Frame):
 
         combobox = self.entries.get("penyewa")
         if combobox:
-            combobox["values"] = ["Pilih penyewa"] + self.nama_penyewa_list
-            combobox.current(0)
+            if not self.nama_penyewa_list:
+                combobox["values"] = ["Sudah bayar semua"]
+                combobox.set("Sudah bayar semua")
+                combobox.config(state="disabled")
+            elif len(self.nama_penyewa_list) == 0:
+                combobox["values"] = ["Tidak ada penyewa aktif"]
+                combobox.set("Tidak ada penyewa aktif")
+                combobox.config(state="disabled")
+            else:
+                combobox["values"] = ["Pilih penyewa"] + self.nama_penyewa_list
+                combobox.set("Pilih penyewa")
+                combobox.config(state="readonly")
 
     def unit_selected(self, event=None):
         kd_unit = self.entries['kode_unit'].get()
@@ -504,11 +514,13 @@ class TransaksiApp(tk.Frame):
             messagebox.showerror("Error", f"Gagal mengupdate transaksi: {e}")
 
     def clear_form(self):
-        self.set_mode_input()  # 🔓 Kembali ke mode input
         self.refresh_penyewa_combobox()
+        self.set_mode_input()
         self.entries['kode_transaksi'].config(state='normal')
 
         for key, ent in self.entries.items():
+            if key == "penyewa":
+                continue
             if isinstance(ent, ttk.Combobox):
                 ent.config(state='readonly')
                 ent.current(0)
@@ -523,31 +535,34 @@ class TransaksiApp(tk.Frame):
 
                 if key in ["diskon", "biaya_tambahan"]:
                     ent.insert(0, "0")
-                    ent.config(state="readonly")
 
                 elif key in ["jumlah_bayar", "kembalian"]:
                     ent.insert(0, "0")
                     ent.config(state="readonly")
 
                 elif key == "status_transaksi":
-                    ent.delete(0, 'end')
                     ent.insert(0, "belum_lunas")
                     ent.config(state="readonly")
 
         self.tree.selection_remove(self.tree.selection())
         self.generate_kode_otomatis()
 
-        # Refresh kode unit kosong
         if isinstance(self.entries['kode_unit'], ttk.Combobox):
             self.entries['kode_unit'].config(state='readonly')
             unit_kosong = self.controller.fetch_kode_unit_kosong()
             self.entries['kode_unit']['values'] = ["Pilih kode unit"] + unit_kosong
             self.entries['kode_unit'].set("Pilih kode unit")
 
-        # Reset penyewa ke awal
         if isinstance(self.entries['penyewa'], ttk.Combobox):
-            self.entries['penyewa'].config(state='readonly')
-            self.entries['penyewa'].set("Pilih penyewa")
+            if not self.nama_penyewa_list:
+                self.entries['penyewa']['values'] = ["Sudah bayar semua"]
+                self.entries['penyewa'].set("Sudah bayar semua")
+                self.entries['penyewa'].config(state="disabled")
+            else:
+                penyewa_options = ["Pilih penyewa"] + self.nama_penyewa_list
+                self.entries['penyewa']['values'] = penyewa_options
+                self.entries['penyewa'].set("Pilih penyewa")
+                self.entries['penyewa'].config(state="readonly")
 
     def bersihkan_angka(self, str_angka):
         try:
@@ -558,7 +573,7 @@ class TransaksiApp(tk.Frame):
     def on_tree_select(self, event):
         selected = self.tree.focus()
         if selected:
-            self.set_mode_update()  # ⛔ Ubah jadi mode update
+            self.set_mode_update()
 
             kode_transaksi = self.tree.item(selected, 'values')[0]
             detail_data = self.controller.get_detail_transaksi(kode_transaksi)
